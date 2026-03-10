@@ -1,0 +1,4 @@
+# Personal experience data — never commit real files.
+# Copy *.example.md → *.md and fill in your own data.
+markdown/**/*.md
+!markdown/**/*.example.md
