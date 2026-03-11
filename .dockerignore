@@ -1,0 +1,43 @@
+# Dependencies — always rebuilt in Docker
+node_modules
+**/node_modules
+
+# Build outputs — rebuilt inside Docker
+dist
+**/.next
+**/out
+**/build
+
+# Turbo cache
+.turbo
+**/.turbo
+
+# Git
+.git
+.gitignore
+
+# Environment secrets — never in image
+.env
+.env.local
+**/.env
+**/.env.local
+**/.env.*.local
+
+# Editor / OS
+.DS_Store
+.vscode
+.idea
+Thumbs.db
+
+# Logs
+*.log
+
+# TypeScript incremental build info
+*.tsbuildinfo
+
+# Test coverage
+coverage
+**/coverage
+
+# CI
+.github

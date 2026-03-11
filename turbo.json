@@ -16,7 +16,7 @@
       "inputs": ["src/**/*.ts", "src/**/*.tsx", "tsconfig.json"]
     },
     "lint": {
-      "dependsOn": ["^lint"],
+      "dependsOn": ["^build", "^lint"],
       "inputs": ["src/**/*.ts", "src/**/*.tsx", "*.js", "*.cjs"]
     },
     "test": {

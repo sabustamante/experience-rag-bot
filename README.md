@@ -18,7 +18,10 @@ experience-rag-bot/
 │   ├── tsconfig/         # Shared TypeScript configs
 │   └── eslint-config/    # Shared ESLint configs
 └── infra/
-    └── cdk/          # AWS CDK infrastructure
+    ├── docker-compose.yml          # Full local stack
+    ├── docker-compose.override.yml # Dev hot-reload overrides
+    ├── postgres/init.sql           # pgvector schema
+    └── cdk/                        # AWS CDK infrastructure (Stage 5)
 ```
 
 ## Stack
@@ -38,11 +41,29 @@ experience-rag-bot/
 
 - Node.js 22+
 - pnpm 10+
+- Docker + Docker Compose
 
 ### Install
 
 ```bash
 pnpm install
+```
+
+### Quickstart (Docker)
+
+```bash
+cp .env.example .env
+# Fill in AWS credentials and any other values
+
+cd infra
+docker compose up -d
+# → postgres + API are healthy
+
+docker compose --profile seed run seed
+# → populates pgvector with experience chunks
+
+curl localhost:3001/api/health
+# → { "status": "ok", ... }
 ```
 
 ### Type check
@@ -78,7 +99,7 @@ The parser automatically prefers `*.md` over `*.example.md` for each file. The b
 | ----- | ------------------------------------ | ------- |
 | 0     | Monorepo scaffold                    | ✅ Done |
 | 1     | NestJS backend — RAG chat end-to-end | ✅ Done |
-| 2     | Docker Compose full stack locally    | ⏳      |
+| 2     | Docker Compose full stack locally    | ✅ Done |
 | 3     | Next.js landing + chat UI            | ⏳      |
 | 4     | React Native mobile app              | ⏳      |
 | 5     | AWS deployment + CI/CD               | ⏳      |
