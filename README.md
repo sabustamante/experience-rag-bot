@@ -95,20 +95,27 @@ The parser automatically prefers `*.md` over `*.example.md` for each file. The b
 
 ### Customize the assistant's behavior
 
-The bot has a built-in system prompt that makes it behave as a professional career assistant. You can extend it — without touching any code — by adding `SYSTEM_PROMPT_APPEND` to your `.env`:
+The system prompt is loaded from a file at startup (first match wins):
+
+1. `apps/api/system-prompt.md` — your personal prompt (**gitignored, never committed**)
+2. `apps/api/system-prompt.example.md` — the default shipped with the repo
+
+This mirrors the `.env` / `.env.example` pattern. Edit your personal file freely — it will never be committed.
 
 ```bash
-# .env (gitignored — never committed)
-SYSTEM_PROMPT_APPEND=Always respond in Spanish. Be concise and use bullet points when listing items.
+cp apps/api/system-prompt.example.md apps/api/system-prompt.md
+# Edit system-prompt.md with your own tone, language, persona, etc.
 ```
 
-The value is **appended** to the default prompt at startup. If the variable is not set (or empty), the default behavior is used. Restart the API after changing it.
+**In Docker**, both files are copied into the image at build time if present. To update the prompt without rebuilding, mount your file at runtime:
 
-Common uses:
-
-- Change response language: `Always respond in Spanish.`
-- Adjust tone: `Be concise. Avoid corporate jargon.`
-- Add persona context: `Your name is Alex. You are a senior full-stack engineer.`
+```bash
+# docker-compose.override.yml
+services:
+  api:
+    volumes:
+      - ./apps/api/system-prompt.md:/repo/apps/api/system-prompt.md
+```
 
 ## Roadmap
 

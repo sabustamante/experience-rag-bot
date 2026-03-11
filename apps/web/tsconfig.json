@@ -19,7 +19,8 @@
       }
     ],
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "@ui-config": ["./app/config/ui.example.ts"]
     }
   },
   "include": [

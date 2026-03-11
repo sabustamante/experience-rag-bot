@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import ui from "@ui-config";
+
 import { useChat } from "@/app/hooks/useChat";
 
 import { MessageBubble } from "./MessageBubble";
@@ -41,8 +43,8 @@ export function ChatWindow() {
             <div className="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center mb-4">
               <span className="text-2xl">💬</span>
             </div>
-            <p className="text-gray-600 font-medium mb-1">Ask me anything</p>
-            <p className="text-gray-400 text-sm">about my experience, skills, or projects</p>
+            <p className="text-gray-600 font-medium mb-1">{ui.chat.emptyHeading}</p>
+            <p className="text-gray-400 text-sm">{ui.chat.emptySubtitle}</p>
           </div>
         )}
 
@@ -74,7 +76,7 @@ export function ChatWindow() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Type a message…"
+            placeholder={ui.chat.inputPlaceholder}
             rows={1}
             className="flex-1 resize-none rounded-xl border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 max-h-32 overflow-y-auto"
             style={{ height: "auto" }}

@@ -1,6 +1,15 @@
 import Link from "next/link";
 
+import ui from "@ui-config";
+
 import { ChatWindow } from "@/app/components/chat/ChatWindow";
+
+const initials = ui.name
+  .split(" ")
+  .slice(0, 2)
+  .map((w) => w[0])
+  .join("")
+  .toUpperCase();
 
 export default function ChatPage() {
   return (
@@ -23,11 +32,11 @@ export default function ChatPage() {
         </Link>
         <div className="flex items-center gap-2 min-w-0">
           <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center shrink-0">
-            <span className="text-sm font-semibold text-indigo-700">AI</span>
+            <span className="text-sm font-semibold text-indigo-700">{initials}</span>
           </div>
           <div className="min-w-0">
-            <p className="text-sm font-semibold text-gray-900 truncate">Portfolio Assistant</p>
-            <p className="text-xs text-green-500">Online</p>
+            <p className="text-sm font-semibold text-gray-900 truncate">{ui.name}</p>
+            <p className="text-xs text-green-500">{ui.chat.onlineStatus}</p>
           </div>
         </div>
       </header>

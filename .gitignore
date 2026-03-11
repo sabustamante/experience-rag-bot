@@ -16,6 +16,12 @@ build/
 .env.local
 .env.*.local
 
+# Personal system prompt — copy system-prompt.example.md and edit freely
+apps/api/system-prompt.md
+
+# Personal UI config — copy ui.example.ts and edit freely
+apps/web/app/config/ui.ts
+
 # OS
 .DS_Store
 Thumbs.db

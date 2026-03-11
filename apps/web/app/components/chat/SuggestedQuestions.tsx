@@ -1,12 +1,6 @@
 "use client";
 
-const SUGGESTIONS = [
-  "What's your experience with Node.js?",
-  "What cloud platforms have you worked with?",
-  "Tell me about a challenging project you built.",
-  "What's your strongest technical skill?",
-  "Do you have experience with React?",
-];
+import ui from "@ui-config";
 
 interface Props {
   onSelect: (question: string) => void;
@@ -15,9 +9,9 @@ interface Props {
 export function SuggestedQuestions({ onSelect }: Props) {
   return (
     <div className="px-4 pb-4">
-      <p className="text-xs text-gray-400 mb-2 text-center">Suggested questions</p>
+      <p className="text-xs text-gray-400 mb-2 text-center">{ui.chat.suggestedLabel}</p>
       <div className="flex flex-wrap gap-2 justify-center">
-        {SUGGESTIONS.map((q) => (
+        {ui.chat.suggestedQuestions.map((q) => (
           <button
             key={q}
             onClick={() => onSelect(q)}
