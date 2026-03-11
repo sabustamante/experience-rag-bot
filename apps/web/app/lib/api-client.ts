@@ -1,4 +1,12 @@
+import type { LandingContent, ProfileType } from "@repo/shared-types";
+
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
+
+export async function fetchLanding(profile: ProfileType): Promise<LandingContent> {
+  const res = await fetch(`${API}/api/landing/${profile}`, { next: { revalidate: 3600 } });
+  if (!res.ok) throw new Error(`Failed to fetch landing content for profile: ${profile}`);
+  return res.json() as Promise<LandingContent>;
+}
 
 /**
  * Consumes the SSE stream from POST /api/chat/message.
