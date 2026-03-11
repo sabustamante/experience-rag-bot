@@ -1,0 +1,1 @@
+pnpm turbo lint typecheck test --filter=[origin/main...HEAD]

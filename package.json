@@ -9,9 +9,16 @@
     "typecheck": "turbo typecheck",
     "lint": "turbo lint",
     "test": "turbo test",
-    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\" --ignore-path .prettierignore"
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\" --ignore-path .prettierignore",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "**/*.{ts,tsx,js,cjs,mjs}": "prettier --write",
+    "**/*.{json,md}": "prettier --write"
   },
   "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^16.3.3",
     "prettier": "^3.3.3",
     "turbo": "^2.3.3",
     "typescript": "^5.6.3"
