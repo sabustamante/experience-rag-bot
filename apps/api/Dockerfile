@@ -38,6 +38,8 @@ COPY packages/tsconfig/package.json ./packages/tsconfig/
 # Copy production node_modules and built artifacts
 COPY --from=deps /repo/node_modules ./node_modules
 COPY --from=deps /repo/apps/api/node_modules ./apps/api/node_modules
+COPY --from=deps /repo/packages/experience-data/node_modules ./packages/experience-data/node_modules
+COPY --from=deps /repo/packages/shared-types/node_modules ./packages/shared-types/node_modules
 COPY --from=build /repo/apps/api/dist ./apps/api/dist
 COPY --from=build /repo/packages/shared-types/dist ./packages/shared-types/dist
 COPY --from=build /repo/packages/experience-data/dist ./packages/experience-data/dist
@@ -51,4 +53,4 @@ USER appuser
 WORKDIR /repo/apps/api
 EXPOSE 3001
 
-CMD ["node", "dist/main"]
+CMD ["node", "dist/src/main"]

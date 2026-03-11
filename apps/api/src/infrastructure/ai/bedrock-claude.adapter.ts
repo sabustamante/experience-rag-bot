@@ -48,7 +48,6 @@ export class BedrockClaudeAdapter implements ILLMProvider, OnModuleInit {
       anthropic_version: "bedrock-2023-05-31",
       max_tokens: options?.maxTokens ?? 2048,
       temperature: options?.temperature ?? 0.7,
-      top_p: options?.topP ?? 0.9,
       system: options?.systemPrompt,
       messages: claudeMessages,
       stop_sequences: options?.stopSequences,
