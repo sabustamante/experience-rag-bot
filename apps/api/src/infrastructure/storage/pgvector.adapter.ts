@@ -159,8 +159,7 @@ export class PgVectorAdapter implements IVectorStore, OnModuleInit, OnModuleDest
     `);
     await this.pool.query(`
       CREATE INDEX IF NOT EXISTS experience_chunks_embedding_idx
-      ON experience_chunks USING ivfflat (embedding vector_cosine_ops)
-      WITH (lists = 100)
+      ON experience_chunks USING hnsw (embedding vector_cosine_ops)
     `);
   }
 

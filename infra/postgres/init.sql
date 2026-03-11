@@ -10,8 +10,8 @@ CREATE TABLE IF NOT EXISTS experience_chunks (
   embedding vector(1024)
 );
 
--- ivfflat index for approximate nearest-neighbour search
+-- hnsw index for approximate nearest-neighbour search
+-- (works correctly for small datasets; ivfflat requires >= lists rows)
 CREATE INDEX IF NOT EXISTS experience_chunks_embedding_idx
   ON experience_chunks
-  USING ivfflat (embedding vector_cosine_ops)
-  WITH (lists = 100);
+  USING hnsw (embedding vector_cosine_ops);
