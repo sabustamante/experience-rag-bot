@@ -10,11 +10,11 @@
 
 ### 0.1 — Initialize Turborepo + pnpm workspaces
 
-- [ ] Run `pnpm dlx create-turbo@latest` or scaffold manually
-- [ ] Configure `pnpm-workspace.yaml` to include `apps/*` and `packages/*`
-- [ ] Add root `package.json` with `"packageManager": "pnpm@x.x.x"`
-- [ ] Add `turbo.json` with pipelines: `build`, `dev`, `typecheck`, `lint`, `test`
-- [ ] Verify `pnpm install` resolves without errors
+- [x] Run `pnpm dlx create-turbo@latest` or scaffold manually
+- [x] Configure `pnpm-workspace.yaml` to include `apps/*` and `packages/*`
+- [x] Add root `package.json` with `"packageManager": "pnpm@x.x.x"`
+- [x] Add `turbo.json` with pipelines: `build`, `dev`, `typecheck`, `lint`, `test`
+- [x] Verify `pnpm install` resolves without errors
 
 ```
 Commit: feature/monorepo-init
@@ -27,18 +27,18 @@ for apps/* and packages/*.
 
 ### 0.2 — Shared TypeScript + Lint + Format config
 
-- [ ] Create `packages/tsconfig/` with:
+- [x] Create `packages/tsconfig/` with:
   - `base.json` — strict mode, `ES2022`, `bundler` module resolution
   - `nestjs.json` — extends base, adds NestJS decorators config (`emitDecoratorMetadata`, `experimentalDecorators`)
   - `nextjs.json` — extends base, adds JSX and Next.js paths
   - `react-native.json` — extends base for Expo/RN
-- [ ] Create `packages/eslint-config/` with:
+- [x] Create `packages/eslint-config/` with:
   - `base.js` — TypeScript rules, import order, no unused vars
   - `nestjs.js` — extends base
   - `next.js` — extends base + Next.js plugin
-- [ ] Add root `.prettierrc` and `.prettierignore`
-- [ ] Add root `.editorconfig`
-- [ ] Verify `pnpm turbo typecheck` and `pnpm turbo lint` run (even with empty packages)
+- [x] Add root `.prettierrc` and `.prettierignore`
+- [x] Add root `.editorconfig`
+- [x] Verify `pnpm turbo typecheck` and `pnpm turbo lint` run (even with empty packages)
 
 ```
 Commit: feature/shared-tooling
@@ -51,16 +51,16 @@ code style and strict type-checking across the monorepo.
 
 ### 0.3 — `packages/shared-types` — Interfaces and Port definitions
 
-- [ ] Scaffold `packages/shared-types/package.json` with correct `name`, `main`, and `exports`
-- [ ] Create `src/experience.ts`:
+- [x] Scaffold `packages/shared-types/package.json` with correct `name`, `main`, and `exports`
+- [x] Create `src/experience.ts`:
   - `ExperienceData`, `Company`, `Project`, `Skill`, `Education`, `Certification`, `Achievement`
-- [ ] Create `src/chat.ts`:
+- [x] Create `src/chat.ts`:
   - `ChatSession`, `ChatMessage`, `ChatRole`
-- [ ] Create `src/landing.ts`:
+- [x] Create `src/landing.ts`:
   - `ProfileType`, `LandingContent`, `LandingSkill`, `LandingExperience`, `LandingProject`
-- [ ] Create `src/cv.ts`:
+- [x] Create `src/cv.ts`:
   - `GeneratedCV`, `CVFilters`, `JobPosting` (Phase 5 — define shape, leave empty stubs)
-- [ ] Create `src/ports.ts` — ALL driven port interfaces:
+- [x] Create `src/ports.ts` — ALL driven port interfaces:
   - `ILLMProvider`, `LLMOptions`
   - `IEmbeddingProvider`
   - `IVectorStore`, `VectorSearchResult`, `ChunkMetadata`, `MetadataFilter`
@@ -68,9 +68,9 @@ code style and strict type-checking across the monorepo.
   - `IExperienceSource`, `ExperienceChunk`
   - `ICacheProvider`
   - `ITemplateEngine`
-- [ ] Create `src/index.ts` — re-export everything
-- [ ] Add `tsconfig.json` extending `packages/tsconfig/base.json`
-- [ ] Verify `pnpm --filter shared-types typecheck` passes
+- [x] Create `src/index.ts` — re-export everything
+- [x] Add `tsconfig.json` extending `packages/tsconfig/base.json`
+- [x] Verify `pnpm --filter shared-types typecheck` passes
 
 ```
 Commit: feature/shared-types
@@ -83,8 +83,8 @@ This package is the single source of truth for types shared across apps.
 
 ### 0.4 — `packages/experience-data` — Markdown experience files
 
-- [ ] Scaffold `packages/experience-data/package.json`
-- [ ] Create `markdown/` directory structure:
+- [x] Scaffold `packages/experience-data/package.json`
+- [x] Create `markdown/` directory structure:
   ```
   markdown/
   ├── companies/
@@ -97,12 +97,12 @@ This package is the single source of truth for types shared across apps.
   ├── education.md
   └── summary.md
   ```
-- [ ] Write each `.md` file with YAML frontmatter + structured content sections (Responsibilities, Achievements, Tech Stack)
-- [ ] Install `gray-matter` and `remark` as dependencies
-- [ ] Create `parser.ts` — reads `.md` files, parses frontmatter, returns `ExperienceData`
-- [ ] Create `chunker.ts` — splits `ExperienceData` into `ExperienceChunk[]` (~30-60 chunks)
-- [ ] Add `tsconfig.json` extending `packages/tsconfig/base.json`
-- [ ] Verify `pnpm --filter experience-data typecheck` passes
+- [x] Write each `.md` file with YAML frontmatter + structured content sections (Responsibilities, Achievements, Tech Stack)
+- [x] Install `gray-matter` and `remark` as dependencies
+- [x] Create `parser.ts` — reads `.md` files, parses frontmatter, returns `ExperienceData`
+- [x] Create `chunker.ts` — splits `ExperienceData` into `ExperienceChunk[]` (~30-60 chunks)
+- [x] Add `tsconfig.json` extending `packages/tsconfig/base.json`
+- [x] Verify `pnpm --filter experience-data typecheck` passes
 
 ```
 Commit: feature/experience-data
@@ -115,15 +115,15 @@ that produces ExperienceChunk[] ready for embedding ingestion.
 
 ### 0.5 — CI Pipeline (GitHub Actions)
 
-- [ ] Create `.github/workflows/ci.yml`
-- [ ] Configure trigger on `push` to `main`/`develop` and on `pull_request`
-- [ ] Add jobs:
+- [x] Create `.github/workflows/ci.yml`
+- [x] Configure trigger on `push` to `main`/`develop` and on `pull_request`
+- [x] Add jobs:
   - `typecheck` — runs `pnpm turbo typecheck`
   - `lint` — runs `pnpm turbo lint`
   - `test` — runs `pnpm turbo test` (empty for now, will fill in later stages)
-- [ ] Add pnpm caching using `actions/cache` with `pnpm-lock.yaml` key
-- [ ] Add Turborepo remote cache (optional: Vercel remote cache or self-hosted)
-- [ ] Verify workflow runs green on a test push
+- [x] Add pnpm caching using `actions/cache` with `pnpm-lock.yaml` key
+- [x] Add Turborepo remote cache (optional: Vercel remote cache or self-hosted)
+- [x] Verify workflow runs green on a test push
 
 ```
 Commit: feature/ci-pipeline
@@ -136,9 +136,9 @@ repeated runs.
 
 ## Completion Checklist
 
-- [ ] `pnpm install` — no errors
-- [ ] `pnpm turbo typecheck` — green
-- [ ] `pnpm turbo lint` — green
-- [ ] `packages/shared-types` exports all interfaces and port definitions
-- [ ] `packages/experience-data` has real experience data and a working parser
-- [ ] CI workflow runs on GitHub without failures
+- [x] `pnpm install` — no errors
+- [x] `pnpm turbo typecheck` — green
+- [x] `pnpm turbo lint` — green
+- [x] `packages/shared-types` exports all interfaces and port definitions
+- [x] `packages/experience-data` has real experience data and a working parser
+- [x] CI workflow runs on GitHub without failures

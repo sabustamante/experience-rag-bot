@@ -66,7 +66,7 @@ caching. Final image contains only the compiled output and production dependenci
 - [ ] Add `api` service to `infra/docker-compose.yml`:
   - Build context: repo root, Dockerfile: `apps/api/Dockerfile`
   - Environment: read from `.env` file (use `env_file`)
-  - Ports: `3000:3000` (REST) and `3002:3002` (WebSocket)
+  - Ports: `3001:3001` (REST + WebSocket on same port, namespace `/chat`)
   - `depends_on` with condition `service_healthy` for `postgres`
   - Restart policy: `unless-stopped`
 - [ ] Add `seed` service:
@@ -139,8 +139,8 @@ restarts.
 
 - [ ] `docker compose up -d` — all services reach healthy state
 - [ ] `docker compose --profile seed run seed` — populates pgvector without errors
-- [ ] `curl localhost:3000/api/health` — returns `{ status: 'ok' }`
-- [ ] WebSocket connection to `ws://localhost:3002` — chat works end-to-end
+- [ ] `curl localhost:3001/api/health` — returns `{ status: 'ok' }`
+- [ ] WebSocket connection to `ws://localhost:3001/chat` — chat works end-to-end
 - [ ] `docker compose down -v && docker compose up -d` — clean restart works
 - [ ] No secrets committed to git (`.env` in `.gitignore`)
 - [ ] Image builds in < 3 minutes on a fresh Docker layer cache

@@ -23,14 +23,14 @@ experience-rag-bot/
 
 ## Stack
 
-| Layer | Tech |
-|---|---|
-| Backend | Node.js 22, NestJS, TypeORM |
-| AI | Amazon Bedrock (Claude), pgvector |
-| Frontend | Next.js 14, Tailwind CSS |
-| Mobile | Expo SDK, React Native |
-| Infra | AWS ECS Fargate, RDS, S3, CloudFront |
-| Monorepo | Turborepo, pnpm workspaces |
+| Layer    | Tech                                 |
+| -------- | ------------------------------------ |
+| Backend  | Node.js 22, NestJS, TypeORM          |
+| AI       | Amazon Bedrock (Claude), pgvector    |
+| Frontend | Next.js 14, Tailwind CSS             |
+| Mobile   | Expo SDK, React Native               |
+| Infra    | AWS ECS Fargate, RDS, S3, CloudFront |
+| Monorepo | Turborepo, pnpm workspaces           |
 
 ## Getting started
 
@@ -74,14 +74,14 @@ The parser automatically prefers `*.md` over `*.example.md` for each file. The b
 
 ## Roadmap
 
-| Stage | Description | Status |
-|---|---|---|
-| 0 | Monorepo scaffold | ✅ Done |
-| 1 | NestJS backend — RAG chat end-to-end | ⏳ |
-| 2 | Docker Compose full stack locally | ⏳ |
-| 3 | Next.js landing + chat UI | ⏳ |
-| 4 | React Native mobile app | ⏳ |
-| 5 | AWS deployment + CI/CD | ⏳ |
-| 6 | CV generator (job posting → PDF) | ⏳ |
+| Stage | Description                          | Status  |
+| ----- | ------------------------------------ | ------- |
+| 0     | Monorepo scaffold                    | ✅ Done |
+| 1     | NestJS backend — RAG chat end-to-end | ✅ Done |
+| 2     | Docker Compose full stack locally    | ⏳      |
+| 3     | Next.js landing + chat UI            | ⏳      |
+| 4     | React Native mobile app              | ⏳      |
+| 5     | AWS deployment + CI/CD               | ⏳      |
+| 6     | CV generator (job posting → PDF)     | ⏳      |
 
 See [`roadmap/`](roadmap/) for detailed step-by-step plans per stage.

@@ -19,13 +19,13 @@
 - [ ] Add `.eslintrc.js` extending `packages/eslint-config/next.js`
 - [ ] Install `@repo/shared-types` as workspace dependency
 - [ ] Add `apps/web` to Turborepo pipeline
-- [ ] Verify `pnpm --filter web dev` starts on port 3001
+- [ ] Verify `pnpm --filter web dev` starts on port 3000
 
 ```
 Commit: feature/web-scaffold
 Description: Scaffold Next.js 14 application with App Router, Tailwind CSS, and
 TypeScript. Registered in the Turborepo pipeline and configured with shared
-tsconfig/eslint presets. Listens on port 3001 to avoid conflict with the API.
+tsconfig/eslint presets. Listens on port 3000 (API runs on 3001).
 ```
 
 ---
@@ -199,7 +199,7 @@ CDN. Tab switching is instant — data already available via React Query hydrati
 
 ## Completion Checklist
 
-- [ ] `pnpm --filter web dev` — starts on port 3001
+- [ ] `pnpm --filter web dev` — starts on port 3000
 - [ ] `pnpm --filter web build` — builds successfully with no type errors
 - [ ] Landing page loads with all three profile tabs functional
 - [ ] Profile tab switch triggers API call and re-renders dynamic sections
