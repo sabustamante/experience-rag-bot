@@ -34,10 +34,6 @@ import { PgVectorAdapter } from "../infrastructure/storage/pgvector.adapter";
       inject: [ConfigService, InMemoryCacheAdapter],
     },
   ],
-  exports: [
-    PORT_TOKENS.EXPERIENCE_SOURCE,
-    PORT_TOKENS.VECTOR_STORE,
-    PORT_TOKENS.CACHE_PROVIDER,
-  ],
+  exports: [PORT_TOKENS.EXPERIENCE_SOURCE, PORT_TOKENS.VECTOR_STORE, PORT_TOKENS.CACHE_PROVIDER],
 })
 export class StorageModule {}

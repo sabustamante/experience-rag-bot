@@ -1,4 +1,8 @@
-import { BedrockRuntimeClient, InvokeModelCommand, InvokeModelWithResponseStreamCommand } from "@aws-sdk/client-bedrock-runtime";
+import {
+  BedrockRuntimeClient,
+  InvokeModelCommand,
+  InvokeModelWithResponseStreamCommand,
+} from "@aws-sdk/client-bedrock-runtime";
 import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 
@@ -25,7 +29,7 @@ export class BedrockClaudeAdapter implements ILLMProvider, OnModuleInit {
     );
   }
 
-  async onModuleInit() {
+  onModuleInit() {
     this.logger.log(`BedrockClaudeAdapter initialized — model: ${this.modelId}`);
   }
 
@@ -110,7 +114,7 @@ export class BedrockClaudeAdapter implements ILLMProvider, OnModuleInit {
 
     const text = raw.content[0]?.text ?? "";
     const jsonMatch = text.match(/```json\s*([\s\S]+?)\s*```/) ?? text.match(/(\{[\s\S]+\})/);
-    const json = JSON.parse(jsonMatch?.[1] ?? text);
+    const json: unknown = JSON.parse(jsonMatch?.[1] ?? text);
 
     return schema.parse(json);
   }

@@ -15,7 +15,7 @@ const mockResults: VectorSearchResult[] = [
   },
 ];
 
-async function* fakeStream(tokens: string[]) {
+function* fakeStream(tokens: string[]) {
   for (const t of tokens) yield t;
 }
 

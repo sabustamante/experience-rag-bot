@@ -24,6 +24,7 @@ export class ChatService {
     private readonly experienceService: ExperienceService,
   ) {}
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async *chat(message: string, _sessionId: string): AsyncIterable<string> {
     // 1. Embed the user query
     const queryEmbedding = await this.embeddings.embed(message);

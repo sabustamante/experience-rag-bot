@@ -1,6 +1,11 @@
 import { Inject, Injectable } from "@nestjs/common";
 
-import type { LandingContent, LandingExperience, LandingSkill, ProfileType } from "@repo/shared-types";
+import type {
+  LandingContent,
+  LandingExperience,
+  LandingSkill,
+  ProfileType,
+} from "@repo/shared-types";
 
 import type { ICacheProvider, ILLMProvider } from "../ports";
 import { PORT_TOKENS } from "../ports";
@@ -84,7 +89,12 @@ Headline:`;
   private isRelevantSkill(category: string, profile: ProfileType): boolean {
     if (profile === "general") return true;
     const frontendCategories = ["Frameworks & Libraries", "Languages"];
-    const backendCategories = ["Languages", "Databases & Storage", "Cloud & Infrastructure", "Architecture & Patterns"];
+    const backendCategories = [
+      "Languages",
+      "Databases & Storage",
+      "Cloud & Infrastructure",
+      "Architecture & Patterns",
+    ];
     if (profile === "frontend") return frontendCategories.includes(category);
     if (profile === "backend") return backendCategories.includes(category);
     return true; // fullstack — all

@@ -9,6 +9,13 @@ import type {
   VectorSearchResult,
 } from "@repo/shared-types";
 
+interface ChunkRow {
+  id: string;
+  content: string;
+  score: string;
+  metadata: ChunkMetadata;
+}
+
 @Injectable()
 export class PgVectorAdapter implements IVectorStore, OnModuleInit {
   private readonly logger = new Logger(PgVectorAdapter.name);
@@ -82,7 +89,7 @@ export class PgVectorAdapter implements IVectorStore, OnModuleInit {
     const params: unknown[] = [vectorLiteral, topK];
 
     if (filters && filters.length > 0) {
-      const conditions = filters.map((f, i) => {
+      const conditions = filters.map((f) => {
         params.push(f.value);
         return `metadata->>'${f.field}' ${this.mapOperator(f.operator)} $${params.length}`;
       });
@@ -98,13 +105,13 @@ export class PgVectorAdapter implements IVectorStore, OnModuleInit {
       LIMIT $2
     `;
 
-    const result = await this.pool.query(query, params);
+    const result = await this.pool.query<ChunkRow>(query, params);
 
     return result.rows.map((row) => ({
-      chunkId: row.id as string,
-      content: row.content as string,
-      score: parseFloat(row.score as string),
-      metadata: row.metadata as ChunkMetadata,
+      chunkId: row.id,
+      content: row.content,
+      score: parseFloat(row.score),
+      metadata: row.metadata,
     }));
   }
 

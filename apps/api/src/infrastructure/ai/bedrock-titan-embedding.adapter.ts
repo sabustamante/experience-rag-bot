@@ -20,7 +20,7 @@ export class BedrockTitanEmbeddingAdapter implements IEmbeddingProvider, OnModul
     );
   }
 
-  async onModuleInit() {
+  onModuleInit() {
     this.logger.log(`BedrockTitanEmbeddingAdapter initialized — model: ${this.modelId}`);
   }
 

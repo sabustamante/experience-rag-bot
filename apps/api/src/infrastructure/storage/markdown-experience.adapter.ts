@@ -11,7 +11,8 @@ export class MarkdownExperienceAdapter implements IExperienceSource {
     if (!this.cachedData) {
       this.cachedData = parseExperienceData();
     }
-    return Promise.resolve(this.cachedData as ExperienceData);
+    const data = this.cachedData;
+    return Promise.resolve(data);
   }
 
   async chunks(): Promise<ExperienceChunk[]> {

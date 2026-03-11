@@ -6,7 +6,7 @@ import { PORT_TOKENS } from "../ports";
 import { ExperienceService } from "./experience.service";
 import { LandingService } from "./landing.service";
 
-async function* fakeStream(tokens: string[]) {
+function* fakeStream(tokens: string[]) {
   for (const t of tokens) yield t;
 }
 
@@ -68,7 +68,15 @@ describe("LandingService", () => {
   });
 
   it("should return cached content when available", async () => {
-    const cached = { profile: "fullstack", headline: "Cached", summary: "", skills: [], experiences: [], projects: [], callToAction: "" };
+    const cached = {
+      profile: "fullstack",
+      headline: "Cached",
+      summary: "",
+      skills: [],
+      experiences: [],
+      projects: [],
+      callToAction: "",
+    };
     mockCache.get.mockResolvedValueOnce(cached);
 
     const result = await service.getProfileContent("fullstack");
