@@ -93,6 +93,23 @@ cp markdown/companies/acme-corp.example.md  markdown/companies/your-company.md
 
 The parser automatically prefers `*.md` over `*.example.md` for each file. The bot works out of the box with the example data on a fresh clone.
 
+### Customize the assistant's behavior
+
+The bot has a built-in system prompt that makes it behave as a professional career assistant. You can extend it — without touching any code — by adding `SYSTEM_PROMPT_APPEND` to your `.env`:
+
+```bash
+# .env (gitignored — never committed)
+SYSTEM_PROMPT_APPEND=Always respond in Spanish. Be concise and use bullet points when listing items.
+```
+
+The value is **appended** to the default prompt at startup. If the variable is not set (or empty), the default behavior is used. Restart the API after changing it.
+
+Common uses:
+
+- Change response language: `Always respond in Spanish.`
+- Adjust tone: `Be concise. Avoid corporate jargon.`
+- Add persona context: `Your name is Alex. You are a senior full-stack engineer.`
+
 ## Roadmap
 
 | Stage | Description                          | Status  |
