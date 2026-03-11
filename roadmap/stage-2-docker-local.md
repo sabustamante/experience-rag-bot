@@ -30,13 +30,6 @@
 - [ ] Mount `init.sql` as `/docker-entrypoint-initdb.d/init.sql`
 - [ ] Verify `docker compose up postgres` starts and `psql` connects
 
-```
-Commit: feature/docker-postgres
-Description: Add docker-compose service for PostgreSQL 16 with pgvector extension
-pre-installed. Includes init.sql that creates the experience_chunks table and
-ivfflat index on first startup. Named volume ensures data persists across restarts.
-```
-
 ---
 
 ### 2.2 — Dockerfile for `apps/api` (multi-stage)
@@ -51,13 +44,6 @@ ivfflat index on first startup. Named volume ensures data persists across restar
   - But allow `packages/*/src` and `apps/*/src`
 - [ ] Build locally and verify image starts: `docker build -f apps/api/Dockerfile -t api-local .`
 - [ ] Verify image size is reasonable (< 500MB)
-
-```
-Commit: feature/api-dockerfile
-Description: Add multi-stage Dockerfile for the NestJS API. Uses pnpm workspaces
-aware install (copies all package.json files before source) to maximize layer
-caching. Final image contains only the compiled output and production dependencies.
-```
 
 ---
 
@@ -80,13 +66,6 @@ caching. Final image contains only the compiled output and production dependenci
   - Returns `{ status: 'ok', timestamp: ... }`
 - [ ] Verify full stack: `docker compose up -d` → all services healthy
 
-```
-Commit: feature/docker-compose-full
-Description: Extend docker-compose with the NestJS API service. API waits for
-postgres health check before starting. Includes a seed service (profile: seed)
-for initial data loading and a /api/health endpoint used by Docker health checks.
-```
-
 ---
 
 ### 2.4 — Environment Setup Documentation
@@ -106,13 +85,6 @@ for initial data loading and a /api/health endpoint used by Docker health checks
   docker compose --profile seed run seed
   ```
 
-```
-Commit: feature/local-dev-setup
-Description: Add .env.example with all required environment variables documented
-by section. Add docker-compose.override.yml for development hot-reload. Update
-README with one-command quickstart instructions.
-```
-
 ---
 
 ### 2.5 — Health Checks + Startup Reliability
@@ -124,14 +96,6 @@ README with one-command quickstart instructions.
 - [ ] Handle graceful shutdown: `onApplicationShutdown` — close DB pool, flush cache
 - [ ] Add `SIGTERM` handler in `main.ts` for clean container stop
 - [ ] Test: `docker compose stop api` → API drains in-flight requests before stopping
-
-```
-Commit: feature/api-startup-reliability
-Description: Add connection retry logic for PostgreSQL on API startup. Adapters
-validate their external dependencies on module init. Graceful shutdown handler
-drains in-flight requests on SIGTERM, ensuring zero data loss during container
-restarts.
-```
 
 ---
 

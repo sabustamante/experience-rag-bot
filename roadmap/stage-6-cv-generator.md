@@ -25,14 +25,6 @@
 - [ ] Define `CVGenerationEvent` union type: `{ type: 'progress', step, percent }` | `{ type: 'done', cvId }` | `{ type: 'error', message }`
 - [ ] Write unit tests mocking all ports, covering each pipeline step independently
 
-```
-Commit: feature/cv-generator-service
-Description: Add CVGeneratorService implementing a 5-step pipeline: job parsing,
-experience matching via semantic search, ATS optimization via structured LLM output,
-HTML template rendering, and PDF conversion. Streams progress events to the client.
-Fully unit-tested with mocked ports.
-```
-
 ---
 
 ### 6.2 — Infrastructure: HandlebarsTemplateAdapter
@@ -50,14 +42,6 @@ Fully unit-tested with mocked ports.
 - [ ] Handle Puppeteer in Docker: add `chromium-browser` to Dockerfile or use `puppeteer/puppeteer` base image
 - [ ] Write integration test: render template + generate PDF → verify buffer size > 0
 
-```
-Commit: feature/adapter-handlebars-template
-Description: Implement HandlebarsTemplateAdapter using Puppeteer for PDF generation.
-The default CV template is ATS-optimized: single column, clean typography, no
-decorative elements that confuse ATS parsers. Puppeteer runs headless Chromium
-in the same container — no external PDF service needed.
-```
-
 ---
 
 ### 6.3 — Application Layer: CVController
@@ -72,13 +56,6 @@ in the same container — no external PDF service needed.
   - `GET /api/cv/history` — list previously generated CVs
 - [ ] Protect `/api/cv/*` with an API key guard (simple `x-api-key` header check)
 - [ ] Add `CVGeneratorModule` and wire `CVGeneratorService`, `HandlebarsAdapter` to module
-
-```
-Commit: feature/cv-generator-endpoints
-Description: Add CVController with SSE endpoint for streaming generation progress
-and a download endpoint returning the PDF buffer. Protected by API key guard to
-prevent public abuse. Includes history endpoint for retrieving past generations.
-```
 
 ---
 
@@ -101,14 +78,6 @@ prevent public abuse. Includes history endpoint for retrieving past generations.
   - Manages `step`, `percent`, `cvId`, `error` state
   - On `type: 'done'` → enables download button
 
-```
-Commit: feature/web-cv-generator-page
-Description: Add CV Generator page with job posting input, real-time progress
-display via SSE, and PDF preview/download. useCVGenerator hook manages the SSE
-connection and maps progress events to UI state. Download triggers a direct
-browser download of the PDF file.
-```
-
 ---
 
 ### 6.5 — Mobile: CV Generator Screen (optional)
@@ -120,13 +89,6 @@ browser download of the PDF file.
 - [ ] Install `expo-sharing` and `expo-file-system`
 - [ ] Download PDF to device temp directory, then share via native share sheet
 - [ ] Add CV Generator tab to mobile navigation
-
-```
-Commit: feature/mobile-cv-generator
-Description: Add CV Generator screen to the mobile app. After generation, the PDF
-is downloaded to the device temp directory and shared via the native share sheet
-(expo-sharing). This allows saving to Files app, AirDrop, email, etc.
-```
 
 ---
 
@@ -140,14 +102,6 @@ is downloaded to the device temp directory and shared via the native share sheet
   - `id uuid PRIMARY KEY`, `job_title text`, `job_posting_text text`, `pdf_s3_key text`, `created_at timestamptz`
 - [ ] For PDF storage: upload to S3 bucket (reuse frontend bucket or dedicated one) and store S3 key
 - [ ] Add pre-signed URL generation for downloads: `aws s3.getSignedUrl('getObject', { Key, Expires: 3600 })`
-
-```
-Commit: feature/cv-relational-storage
-Description: Implement PostgresRelationalAdapter storing CV generation metadata
-in PostgreSQL. PDF files are stored in S3 and referenced by key. Downloads use
-pre-signed URLs with 1-hour expiry, avoiding the need to proxy binary data
-through the API.
-```
 
 ---
 

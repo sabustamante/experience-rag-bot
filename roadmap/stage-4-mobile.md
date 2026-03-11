@@ -21,13 +21,6 @@
 - [ ] Add `apps/mobile` to Turborepo pipeline (`dev`, `build` tasks)
 - [ ] Verify `pnpm --filter mobile start` launches Expo Go QR code
 
-```
-Commit: feature/mobile-scaffold
-Description: Scaffold Expo SDK 51 app under apps/mobile with Expo Router (tabs
-template). Registered in the Turborepo pipeline with shared tsconfig/eslint
-configs. Uses @repo/shared-types for type sharing with the backend and web app.
-```
-
 ---
 
 ### 4.2 — WebSocket Client + Chat Hooks (Mobile)
@@ -46,14 +39,6 @@ configs. Uses @repo/shared-types for type sharing with the backend and web app.
 - [ ] Create `src/hooks/useStreamResponse.ts`:
   - Identical to web version (pure state logic, no DOM dependency)
 - [ ] Add `apiUrl` and `wsUrl` to `app.config.ts` `extra` field, reading from `process.env`
-
-```
-Commit: feature/mobile-chat-hooks
-Description: Add WebSocket client and useChat/useStreamResponse hooks for mobile.
-Logic mirrors the web hooks with React Native adaptations: session ID uses
-AsyncStorage and socket.io is forced to WebSocket transport. API/WS URLs
-configured via Expo app config extra fields.
-```
 
 ---
 
@@ -76,14 +61,6 @@ configured via Expo app config extra fields.
   - Renders `MessageBubble`, `ChatInput`, `SuggestedQuestions`
   - Loading indicator while awaiting first token
 
-```
-Commit: feature/mobile-chat-components
-Description: Add native chat components using React Native primitives. FlatList
-replaces ScrollView for efficient message rendering. ChatInput handles keyboard
-avoidance natively. Streaming cursor uses Animated API for smooth animation
-without external dependencies.
-```
-
 ---
 
 ### 4.4 — Screens and Navigation
@@ -102,13 +79,6 @@ without external dependencies.
   - "Open Chat" button navigates to Chat tab
 - [ ] Configure tab icons using `@expo/vector-icons`
 
-```
-Commit: feature/mobile-screens
-Description: Add Chat and About screens with Expo Router tab navigation. Chat
-screen is the primary entry point. About screen provides a static profile summary
-with a deep link to the full web landing. Tab icons from @expo/vector-icons.
-```
-
 ---
 
 ### 4.5 — EAS Build Configuration
@@ -124,14 +94,6 @@ with a deep link to the full web landing. Tab icons from @expo/vector-icons.
   - `preview/production` → `https://api.yourdomain.com`
 - [ ] Add `apps/mobile` build step to CI workflow (only on `main` push, `preview` profile)
 - [ ] Verify `eas build --platform ios --profile development` completes
-
-```
-Commit: feature/mobile-eas-build
-Description: Configure EAS Build with development, preview, and production profiles.
-Each profile injects the correct API/WS URLs via app.config.ts. CI triggers a
-preview build on pushes to main. Development profile allows local API connections
-for simulator testing.
-```
 
 ---
 

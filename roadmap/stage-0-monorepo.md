@@ -16,13 +16,6 @@
 - [x] Add `turbo.json` with pipelines: `build`, `dev`, `typecheck`, `lint`, `test`
 - [x] Verify `pnpm install` resolves without errors
 
-```
-Commit: feature/monorepo-init
-Description: Initialize Turborepo monorepo with pnpm workspaces. Configures
-pipeline tasks (build, dev, typecheck, lint, test) and workspace glob patterns
-for apps/* and packages/*.
-```
-
 ---
 
 ### 0.2 — Shared TypeScript + Lint + Format config
@@ -39,13 +32,6 @@ for apps/* and packages/*.
 - [x] Add root `.prettierrc` and `.prettierignore`
 - [x] Add root `.editorconfig`
 - [x] Verify `pnpm turbo typecheck` and `pnpm turbo lint` run (even with empty packages)
-
-```
-Commit: feature/shared-tooling
-Description: Add shared TypeScript configs and ESLint/Prettier configurations
-as internal packages. Each app extends the relevant preset to ensure consistent
-code style and strict type-checking across the monorepo.
-```
 
 ---
 
@@ -72,13 +58,6 @@ code style and strict type-checking across the monorepo.
 - [x] Add `tsconfig.json` extending `packages/tsconfig/base.json`
 - [x] Verify `pnpm --filter shared-types typecheck` passes
 
-```
-Commit: feature/shared-types
-Description: Add shared-types package with all domain interfaces, data models,
-and port definitions (ILLMProvider, IVectorStore, IExperienceSource, etc.).
-This package is the single source of truth for types shared across apps.
-```
-
 ---
 
 ### 0.4 — `packages/experience-data` — Markdown experience files
@@ -104,13 +83,6 @@ This package is the single source of truth for types shared across apps.
 - [x] Add `tsconfig.json` extending `packages/tsconfig/base.json`
 - [x] Verify `pnpm --filter experience-data typecheck` passes
 
-```
-Commit: feature/experience-data
-Description: Add experience-data package with all professional experience written
-in structured Markdown files. Includes parser (gray-matter + remark) and chunker
-that produces ExperienceChunk[] ready for embedding ingestion.
-```
-
 ---
 
 ### 0.5 — CI Pipeline (GitHub Actions)
@@ -124,13 +96,6 @@ that produces ExperienceChunk[] ready for embedding ingestion.
 - [x] Add pnpm caching using `actions/cache` with `pnpm-lock.yaml` key
 - [x] Add Turborepo remote cache (optional: Vercel remote cache or self-hosted)
 - [x] Verify workflow runs green on a test push
-
-```
-Commit: feature/ci-pipeline
-Description: Add GitHub Actions CI workflow with typecheck, lint, and test jobs.
-Uses pnpm caching and Turborepo task caching to minimize redundant work on
-repeated runs.
-```
 
 ---
 

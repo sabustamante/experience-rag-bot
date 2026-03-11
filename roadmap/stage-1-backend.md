@@ -21,13 +21,6 @@
 - [x] Create `.env` from `.env.example` (root level)
 - [x] Verify `pnpm --filter api dev` starts without errors
 
-```
-Commit: feature/api-scaffold
-Description: Scaffold NestJS application under apps/api with workspace-compatible
-package.json, shared tsconfig/eslint configs, and global ConfigModule. Entry
-point for all backend business logic.
-```
-
 ---
 
 ### 1.2 — Domain Ports (interfaces only)
@@ -51,13 +44,6 @@ point for all backend business logic.
 - [x] Ensure all interfaces re-use types from `@repo/shared-types` — no duplicate definitions
 - [x] Verify `pnpm --filter api typecheck` passes
 
-```
-Commit: feature/api-domain-ports
-Description: Define all driven port interfaces in domain/ports/. Each interface
-represents a dependency boundary. Port token constants prevent magic strings
-throughout the codebase. Interfaces re-use shared-types to avoid duplication.
-```
-
 ---
 
 ### 1.3 — Domain Models
@@ -68,13 +54,6 @@ throughout the codebase. Interfaces re-use shared-types to avoid duplication.
 - [x] Create `landing-content.model.ts` — `LandingContent` with profile type and sections
 - [x] Models are plain TypeScript types — zero NestJS, zero infra imports
 - [x] Verify `pnpm --filter api typecheck` passes
-
-```
-Commit: feature/api-domain-models
-Description: Add domain model types (ExperienceChunk, ChatSession, LandingContent)
-as pure TypeScript. No framework or infrastructure dependencies — models are
-valid across any adapter implementation.
-```
 
 ---
 
@@ -101,13 +80,6 @@ valid across any adapter implementation.
   - `landing.service.spec.ts`
 - [x] Verify `pnpm --filter api test` passes
 
-```
-Commit: feature/api-domain-services
-Description: Implement core domain services (ExperienceService, ChatService,
-LandingService) using only port injections. Includes unit tests with all
-ports mocked — zero infrastructure involved at this layer.
-```
-
 ---
 
 ### 1.5 — Infrastructure: MarkdownExperienceAdapter
@@ -120,14 +92,6 @@ ports mocked — zero infrastructure involved at this layer.
   - `getChunks()` — delegate to chunker
 - [x] Verify adapter returns correctly typed `ExperienceData` matching the port contract
 - [x] Write integration test: reads actual `.md` files and verifies parsed output shape
-
-```
-Commit: feature/adapter-markdown-experience
-Description: Implement MarkdownExperienceAdapter as the IExperienceSource driven
-adapter. Reads structured Markdown files from experience-data package, parses
-them with gray-matter and returns typed ExperienceData. Includes in-memory lazy
-cache and integration test against real .md files.
-```
 
 ---
 
@@ -148,14 +112,6 @@ cache and integration test against real .md files.
 - [x] Handle errors: model throttling, token limits, malformed responses
 - [x] Add AWS credential validation on module init (`onModuleInit`)
 
-```
-Commit: feature/adapter-bedrock
-Description: Implement BedrockClaudeAdapter (ILLMProvider) and
-BedrockTitanEmbeddingAdapter (IEmbeddingProvider) using AWS SDK v3.
-Supports response streaming via AsyncIterable and structured output
-via Zod schema validation. Credentials read from ConfigService.
-```
-
 ---
 
 ### 1.7 — Infrastructure: PgVectorAdapter
@@ -173,14 +129,6 @@ via Zod schema validation. Credentials read from ConfigService.
 - [x] Read DB connection params from `ConfigService`
 - [x] Handle connection errors and reconnection
 
-```
-Commit: feature/adapter-pgvector
-Description: Implement PgVectorAdapter as the IVectorStore driven adapter using
-the pg client and pgvector extension. Supports cosine similarity search with
-optional JSONB metadata filtering. Includes SQL init script with ivfflat index
-for efficient ANN search.
-```
-
 ---
 
 ### 1.8 — Infrastructure: InMemoryCacheAdapter
@@ -192,13 +140,6 @@ for efficient ANN search.
   - `set<T>(key, value, ttlSeconds?)` — store with optional TTL
   - `invalidate(pattern)` — delete by key pattern (glob match)
 - [x] Read default TTL from `ConfigService` (`LANDING_CACHE_TTL`)
-
-```
-Commit: feature/adapter-in-memory-cache
-Description: Implement InMemoryCacheAdapter using node-cache as the ICacheProvider
-adapter. Supports TTL-based expiration and pattern-based invalidation. Selected
-over Redis for MVP to minimize infrastructure overhead.
-```
 
 ---
 
@@ -227,14 +168,6 @@ over Redis for MVP to minimize infrastructure overhead.
 - [x] Wire everything into `app.module.ts`
 - [x] Verify `pnpm --filter api dev` starts with no DI resolution errors
 
-```
-Commit: feature/api-module-wiring
-Description: Wire all ports to their adapter implementations via NestJS DI modules.
-Provider factories read environment variables to select adapters at runtime
-(AI_LLM_PROVIDER, EXPERIENCE_SOURCE, CACHE_PROVIDER) — swapping adapters requires
-only an env var change, no code modification.
-```
-
 ---
 
 ### 1.10 — Application Layer: ChatController + ChatGateway
@@ -254,13 +187,6 @@ only an env var change, no code modification.
 - [x] Add global validation pipe in `main.ts`
 - [x] Add rate limiting with `@nestjs/throttler` (reads `RATE_LIMIT_TTL`, `RATE_LIMIT_MAX`)
 
-```
-Commit: feature/api-chat-endpoints
-Description: Add ChatController (REST) and ChatGateway (WebSocket) as driving
-adapters. WebSocket streams LLM tokens in real-time via chat:token events.
-Includes DTO validation, rate limiting, and graceful disconnect handling.
-```
-
 ---
 
 ### 1.11 — Seed Script
@@ -274,13 +200,6 @@ Includes DTO validation, rate limiting, and graceful disconnect handling.
 - [x] Add `"seed": "ts-node src/scripts/seed.ts"` to `apps/api/package.json`
 - [x] Add to Turborepo pipeline as a one-off task
 - [x] Verify seed runs end-to-end against a live DB instance
-
-```
-Commit: feature/api-seed-script
-Description: Add seed script that parses experience Markdown files, generates
-embeddings via IEmbeddingProvider, and upserts all chunks into pgvector.
-Idempotent — re-running overwrites existing chunks by ID.
-```
 
 ---
 

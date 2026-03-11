@@ -23,14 +23,6 @@
   - `amazon.titan-embed-text-v2:0`
 - [ ] Create S3 bucket for CDK bootstrap: `cdk bootstrap aws://ACCOUNT/REGION`
 
-```
-Commit: feature/aws-iam-bootstrap
-Description: Document AWS account setup, IAM user creation for CI/CD, and Bedrock
-model access enablement. CDK bootstrap prepares the account for infrastructure
-deployment. IAM follows least-privilege — ci-deploy only has permissions required
-for the specific services used.
-```
-
 ---
 
 ### 5.2 — ECR Repository + First Image Push
@@ -45,13 +37,6 @@ for the specific services used.
 - [ ] Tag strategy: `latest` + `git-sha` (e.g., `abc1234`)
 - [ ] Verify first manual push succeeds: `bash infra/scripts/push-ecr.sh`
 - [ ] Add `.aws/credentials` warning to `.gitignore` and README
-
-```
-Commit: feature/ecr-setup
-Description: Create ECR repository for the API image and add push script. Images
-are tagged with both 'latest' and the git commit SHA, enabling rollback to any
-previous version by re-deploying a specific SHA tag.
-```
 
 ---
 
@@ -69,14 +54,6 @@ previous version by re-deploying a specific SHA tag.
   - CDK: `rds.DatabaseInstance.secret` → automatically created
 - [ ] Create init lambda or one-off ECS task to run `init.sql` (pgvector extension + table)
 - [ ] Verify connectivity from a local machine via an SSH tunnel (bastion host optional)
-
-```
-Commit: feature/rds-database-stack
-Description: Add CDK DatabaseStack provisioning RDS PostgreSQL 16 with t4g.micro
-(~$15/mo). Credentials stored in Secrets Manager with auto-rotation. Security
-group restricts DB access to ECS tasks only. Init script creates pgvector
-extension and experience_chunks table on first deploy.
-```
 
 ---
 
@@ -103,14 +80,6 @@ extension and experience_chunks table on first deploy.
   - **ACM Certificate**: create or import for your domain
 - [ ] Assign task role with permissions: `bedrock:InvokeModel`, `ssm:GetParameter`, `secretsmanager:GetSecretValue`
 
-```
-Commit: feature/ecs-api-stack
-Description: Add CDK ApiStack deploying NestJS to ECS Fargate with Spot capacity
-(~$8/mo). ALB handles HTTPS termination and health checks. Task role grants
-least-privilege access to Bedrock, SSM, and Secrets Manager. Image tag is
-parameterized for zero-downtime rolling deployments.
-```
-
 ---
 
 ### 5.5 — SSM Parameter Store (Environment Variables)
@@ -129,14 +98,6 @@ parameterized for zero-downtime rolling deployments.
 - [ ] Sensitive values (DB password, API keys) stored as `SecureString`
 - [ ] Update ECS task definition to read params from SSM at container startup
 - [ ] Document: `infra/README.md` — how to update a param without redeploying
-
-```
-Commit: feature/ssm-parameters
-Description: Store all API environment variables in SSM Parameter Store under
-/experience-rag-bot/prod/ namespace. Sensitive values use SecureString (KMS
-encrypted). ECS task fetches parameters at startup — updating a config value
-requires only a task restart, not a new image build.
-```
 
 ---
 
@@ -157,14 +118,6 @@ requires only a task restart, not a new image build.
 - [ ] Configure Next.js `output: 'export'` or use `next export` for static output
 - [ ] Add `NEXT_PUBLIC_API_URL` pointing to ALB domain in production
 
-```
-Commit: feature/frontend-stack
-Description: Add CDK FrontendStack deploying Next.js static export to S3 with
-CloudFront CDN. OAC keeps the S3 bucket private. Deploy script syncs the build
-output and invalidates the CloudFront cache. TTFB for static assets from CDN
-is ~50ms globally.
-```
-
 ---
 
 ### 5.7 — CDK App Entry + Stack Composition
@@ -172,9 +125,9 @@ is ~50ms globally.
 - [ ] Initialize CDK app: `infra/cdk/bin/app.ts`
 - [ ] Compose stacks with correct dependency order:
   ```typescript
-  const dbStack = new DatabaseStack(app, 'Database', { env });
-  const apiStack = new ApiStack(app, 'Api', { env, dbStack });
-  const frontendStack = new FrontendStack(app, 'Frontend', { env });
+  const dbStack = new DatabaseStack(app, "Database", { env });
+  const apiStack = new ApiStack(app, "Api", { env, dbStack });
+  const frontendStack = new FrontendStack(app, "Frontend", { env });
   ```
 - [ ] Add stack tags: `Project: experience-rag-bot`, `Environment: prod`
 - [ ] Add `cdk diff` and `cdk deploy` scripts to `infra/package.json`
@@ -184,13 +137,6 @@ is ~50ms globally.
   - How to rollback (redeploy previous image tag)
   - Cost breakdown per service
 - [ ] Run `cdk synth` and verify CloudFormation templates generate without errors
-
-```
-Commit: feature/cdk-app
-Description: Compose all CDK stacks (Database, Api, Frontend) into a single app
-with explicit dependency wiring. Stack tags enable cost allocation by project.
-Includes infra README with first-deploy walkthrough and rollback instructions.
-```
 
 ---
 
@@ -209,28 +155,20 @@ Includes infra README with first-deploy walkthrough and rollback instructions.
 - [ ] Add deployment notification (optional): Slack or GitHub commit status
 - [ ] Test full pipeline: push a commit to `main` → verify all jobs pass
 
-```
-Commit: feature/cicd-pipeline
-Description: Add GitHub Actions deployment pipeline triggered on pushes to main.
-Pipeline runs tests first, then builds and deploys API (ECS rolling update) and
-frontend (S3+CloudFront) in parallel. The seed job runs conditionally only when
-experience data files change, avoiding unnecessary Bedrock API calls.
-```
-
 ---
 
 ## Cloud Portability Notes
 
 The architecture is deliberately cloud-agnostic at the application layer:
 
-| Component | AWS (current) | GCP equivalent | Azure equivalent |
-|-----------|--------------|----------------|-----------------|
-| Container runtime | ECS Fargate | Cloud Run | Azure Container Apps |
-| Database | RDS PostgreSQL | Cloud SQL | Azure Database for PostgreSQL |
-| CDN + Static | S3 + CloudFront | Cloud Storage + Cloud CDN | Blob Storage + Azure CDN |
-| Secrets | Secrets Manager | Secret Manager | Key Vault |
-| LLM | Bedrock (Claude) | Vertex AI (Claude) | Azure OpenAI |
-| IaC | CDK | CDK (supports CloudFormation, Terraform) | Bicep / Terraform |
+| Component         | AWS (current)    | GCP equivalent                           | Azure equivalent              |
+| ----------------- | ---------------- | ---------------------------------------- | ----------------------------- |
+| Container runtime | ECS Fargate      | Cloud Run                                | Azure Container Apps          |
+| Database          | RDS PostgreSQL   | Cloud SQL                                | Azure Database for PostgreSQL |
+| CDN + Static      | S3 + CloudFront  | Cloud Storage + Cloud CDN                | Blob Storage + Azure CDN      |
+| Secrets           | Secrets Manager  | Secret Manager                           | Key Vault                     |
+| LLM               | Bedrock (Claude) | Vertex AI (Claude)                       | Azure OpenAI                  |
+| IaC               | CDK              | CDK (supports CloudFormation, Terraform) | Bicep / Terraform             |
 
 To migrate: swap the CDK stack + swap `BedrockClaudeAdapter` → `VertexAIAdapter` (one line in `ai.module.ts`). Domain logic is untouched.
 
