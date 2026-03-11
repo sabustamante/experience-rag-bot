@@ -1,4 +1,4 @@
-import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
+import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { Pool } from "pg";
 
@@ -17,7 +17,7 @@ interface ChunkRow {
 }
 
 @Injectable()
-export class PgVectorAdapter implements IVectorStore, OnModuleInit {
+export class PgVectorAdapter implements IVectorStore, OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(PgVectorAdapter.name);
   private readonly pool: Pool;
 
@@ -33,8 +33,32 @@ export class PgVectorAdapter implements IVectorStore, OnModuleInit {
   }
 
   async onModuleInit() {
+    await this.connectWithRetry();
     await this.ensureSchema();
     this.logger.log("PgVectorAdapter initialized — schema ready");
+  }
+
+  async onModuleDestroy() {
+    await this.pool.end();
+    this.logger.log("PgVectorAdapter — connection pool closed");
+  }
+
+  private async connectWithRetry(retries = 10, delayMs = 2000): Promise<void> {
+    for (let attempt = 1; attempt <= retries; attempt++) {
+      try {
+        const client = await this.pool.connect();
+        client.release();
+        this.logger.log("Database connection established");
+        return;
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        this.logger.warn(`DB connection attempt ${attempt}/${retries} failed: ${message}`);
+        if (attempt === retries) {
+          throw new Error(`Could not connect to database after ${retries} attempts`);
+        }
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
+      }
+    }
   }
 
   async upsert(

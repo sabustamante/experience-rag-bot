@@ -1,0 +1,15 @@
+# Local development overrides — hot-reload for the API
+# Applied automatically when running `docker compose up` from the infra/ directory.
+services:
+  api:
+    build:
+      target: deps          # stop at the deps stage — no prod build needed
+    volumes:
+      # Mount source so changes are picked up without rebuilding
+      - ../apps/api/src:/repo/apps/api/src:ro
+      - ../packages/shared-types/src:/repo/packages/shared-types/src:ro
+      - ../packages/experience-data/src:/repo/packages/experience-data/src:ro
+      - ../packages/experience-data/markdown:/repo/packages/experience-data/markdown:ro
+    command: ["pnpm", "--filter", "@repo/api", "dev"]
+    environment:
+      NODE_ENV: development

@@ -4,6 +4,7 @@ import { ThrottlerModule } from "@nestjs/throttler";
 
 import { ChatController } from "./application/chat/chat.controller";
 import { ChatGateway } from "./application/chat/chat.gateway";
+import { HealthController } from "./application/health/health.controller";
 import { AIModule } from "./modules/ai.module";
 import { ChatModule } from "./modules/chat.module";
 import { ExperienceModule } from "./modules/experience.module";
@@ -25,7 +26,7 @@ import { StorageModule } from "./modules/storage.module";
     ChatModule,
     LandingModule,
   ],
-  controllers: [ChatController],
+  controllers: [HealthController, ChatController],
   providers: [ChatGateway],
 })
 export class AppModule {}
