@@ -93,6 +93,30 @@ cp markdown/companies/acme-corp.example.md  markdown/companies/your-company.md
 
 The parser automatically prefers `*.md` over `*.example.md` for each file. The bot works out of the box with the example data on a fresh clone.
 
+### Customize the assistant's behavior
+
+The system prompt is loaded from a file at startup (first match wins):
+
+1. `apps/api/system-prompt.md` — your personal prompt (**gitignored, never committed**)
+2. `apps/api/system-prompt.example.md` — the default shipped with the repo
+
+This mirrors the `.env` / `.env.example` pattern. Edit your personal file freely — it will never be committed.
+
+```bash
+cp apps/api/system-prompt.example.md apps/api/system-prompt.md
+# Edit system-prompt.md with your own tone, language, persona, etc.
+```
+
+**In Docker**, both files are copied into the image at build time if present. To update the prompt without rebuilding, mount your file at runtime:
+
+```bash
+# docker-compose.override.yml
+services:
+  api:
+    volumes:
+      - ./apps/api/system-prompt.md:/repo/apps/api/system-prompt.md
+```
+
 ## Roadmap
 
 | Stage | Description                          | Status  |

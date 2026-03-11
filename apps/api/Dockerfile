@@ -45,6 +45,8 @@ COPY --from=build /repo/packages/shared-types/dist ./packages/shared-types/dist
 COPY --from=build /repo/packages/experience-data/dist ./packages/experience-data/dist
 # Experience data markdown files (example data bundled in image)
 COPY --from=build /repo/packages/experience-data/markdown ./packages/experience-data/markdown
+# System prompt files (wildcard copies both .example and personal if present)
+COPY --from=build /repo/apps/api/system-prompt*.md ./apps/api/
 
 # Run as non-root user
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
