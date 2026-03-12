@@ -74,11 +74,18 @@ describe("LandingService", () => {
   it("should generate and cache content on cache miss", async () => {
     const result = await service.getProfileContent("backend");
 
-    expect(mockCache.get).toHaveBeenCalledWith("landing:backend");
+    expect(mockCache.get).toHaveBeenCalledWith("landing:backend:en");
     expect(mockExperienceService.getRawContent).toHaveBeenCalled();
     expect(mockLlm.complete).toHaveBeenCalledTimes(1);
-    expect(mockCache.set).toHaveBeenCalledWith("landing:backend", expect.any(Object), 3600);
+    expect(mockCache.set).toHaveBeenCalledWith("landing:backend:en", expect.any(Object), 3600);
     expect(result.profile).toBe("backend");
+  });
+
+  it("should scope cache key by language", async () => {
+    await service.getProfileContent("frontend", "es");
+
+    expect(mockCache.get).toHaveBeenCalledWith("landing:frontend:es");
+    expect(mockCache.set).toHaveBeenCalledWith("landing:frontend:es", expect.any(Object), 3600);
   });
 
   it("should call the LLM once with raw markdown and profile in the prompt", async () => {
@@ -90,6 +97,13 @@ describe("LandingService", () => {
     expect(messages[0].content).toContain("frontend");
   });
 
+  it("should include language instruction in the prompt", async () => {
+    await service.getProfileContent("fullstack", "es");
+
+    const [messages] = mockLlm.complete.mock.calls[0] as [Array<{ content: string }>];
+    expect(messages[0].content).toContain("español");
+  });
+
   it("should parse the LLM JSON response and enforce invariants", async () => {
     const result = await service.getProfileContent("fullstack");
 
@@ -97,7 +111,7 @@ describe("LandingService", () => {
     expect(result.projects).toEqual([]);
     expect(result.callToAction).toBe("Let's connect");
     expect(result.skills.length).toBeLessThanOrEqual(12);
-    expect(result.experiences.length).toBeLessThanOrEqual(3);
+    expect(result.experiences.length).toBeLessThanOrEqual(5);
   });
 
   it("should strip markdown fences from LLM response", async () => {

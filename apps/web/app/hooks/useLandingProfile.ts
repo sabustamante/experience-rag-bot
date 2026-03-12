@@ -28,17 +28,28 @@ export function useLandingProfile(initial?: LandingContent) {
   });
 
   useEffect(() => {
-    setState((s) => ({ ...s, isLoading: true, error: null }));
+    let cancelled = false;
     fetchLanding(activeProfile, language)
-      .then((content) => setState({ content, isLoading: false, error: null }))
-      .catch((err: unknown) =>
-        setState((s) => ({
-          ...s,
-          isLoading: false,
-          error: err instanceof Error ? err.message : "Failed to load",
-        })),
-      );
+      .then((content) => {
+        if (!cancelled) setState({ content, isLoading: false, error: null });
+      })
+      .catch((err: unknown) => {
+        if (!cancelled)
+          setState((s) => ({
+            ...s,
+            isLoading: false,
+            error: err instanceof Error ? err.message : "Failed to load",
+          }));
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [activeProfile]);
 
-  return { ...state, activeProfile, setActiveProfile };
+  const handleProfileChange = (profile: ProfileType) => {
+    setState((s) => ({ ...s, isLoading: true, error: null }));
+    setActiveProfile(profile);
+  };
+
+  return { ...state, activeProfile, setActiveProfile: handleProfileChange };
 }
