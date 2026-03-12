@@ -16,6 +16,10 @@ export class ExperienceService {
     return this.experienceSource.load();
   }
 
+  getRawContent(): Promise<string> {
+    return this.experienceSource.rawContent();
+  }
+
   getChunks(): Promise<ExperienceChunk[]> {
     return this.experienceSource.chunks();
   }

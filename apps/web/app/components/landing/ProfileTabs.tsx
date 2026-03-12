@@ -8,7 +8,6 @@ const LABELS: Record<ProfileType, string> = {
   fullstack: "Full-stack",
   frontend: "Frontend",
   backend: "Backend",
-  general: "General",
 };
 
 interface Props {
