@@ -8,6 +8,14 @@ const ui: UiConfig = {
     { key: "frontend", label: "Frontend" },
     { key: "backend", label: "Backend" },
   ],
+  hero: {
+    chatCta: "Chat with me",
+    downloadCvCta: "Download CV",
+  },
+  sections: {
+    skills: { title: "Skills" },
+    experience: { title: "Experience" },
+  },
   chat: {
     onlineStatus: "Online",
     emptyHeading: "Ask me anything",
