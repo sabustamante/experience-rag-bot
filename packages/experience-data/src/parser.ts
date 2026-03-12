@@ -136,9 +136,13 @@ function parseWorkExperiences(): WorkExperience[] {
 }
 
 function parseEducation(): Education[] {
-  const file = matter(
-    fs.readFileSync(resolveMarkdownPath(path.join(MARKDOWN_DIR, "education")), "utf-8"),
-  );
+  let filePath: string;
+  try {
+    filePath = resolveMarkdownPath(path.join(MARKDOWN_DIR, "education"));
+  } catch {
+    return [];
+  }
+  const file = matter(fs.readFileSync(filePath, "utf-8"));
   const educations: Education[] = [];
 
   const blocks = file.content.split(/^##\s+/m).filter(Boolean);
@@ -210,8 +214,23 @@ export function getRawMarkdown(): string {
 
   const companiesDir = path.join(MARKDOWN_DIR, "companies");
   if (fs.existsSync(companiesDir)) {
-    for (const { content } of readMarkdownFiles(companiesDir)) {
-      parts.push(content.trim());
+    const files = readMarkdownFiles(companiesDir);
+    const sorted = files.sort((a, b) => {
+      const aDate = String(a.data["startDate"] ?? "");
+      const bDate = String(b.data["startDate"] ?? "");
+      return bDate.localeCompare(aDate);
+    });
+    for (const file of sorted) {
+      const fm = file.data as Record<string, unknown>;
+      const startDate = fm["startDate"] ? String(fm["startDate"]) : "";
+      const endDate = fm["endDate"] ? String(fm["endDate"]) : "";
+      const period = `${startDate} – ${endDate || "present"}`;
+      const header = [
+        `Company: ${fm["companyName"] ?? ""}`,
+        `Role: ${fm["role"] ?? ""}`,
+        `Period: ${period}`,
+      ].join("\n");
+      parts.push(`${header}\n\n${file.content.trim()}`);
     }
   }
 

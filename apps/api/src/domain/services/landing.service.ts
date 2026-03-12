@@ -89,7 +89,7 @@ Return ONLY this JSON, no markdown fences, no explanation:
 {
   "profile": "${profile}",
   "headline": "<seniority> ${rules.role} — max 10 words total, specific and punchy>",
-  "summary": "<2-3 sentences focused exclusively on ${rules.role} strengths>",
+  "summary": "<2-3 sentences in first person, written as a personal narrative (e.g. 'I have X years building...', 'I specialize in...', 'I have worked at...'). Do NOT repeat the job title or seniority from the headline. Focus on ${rules.role} strengths, notable experience, and what makes the candidate stand out.>",
   "skills": [
     { "name": "<skill>", "category": "<category>" }
   ],
@@ -97,9 +97,9 @@ Return ONLY this JSON, no markdown fences, no explanation:
     {
       "company": "<name>",
       "role": "<title>",
-      "period": "<startDate> – <endDate or present>",
-      "summary": "<one sentence focused on ${rules.role} impact>",
-      "highlights": ["<achievement 1>", "<achievement 2>", "<achievement 3>"]
+      "period": "<formatted start> – <formatted end or present>",
+      "summary": "<one sentence in first person focused on ${rules.role} impact, e.g. 'I built...', 'I led...'>",
+      "highlights": ["<highlight in first person, e.g. 'I reduced...', 'I built...'>"]
     }
   ],
   "projects": [],
@@ -108,11 +108,12 @@ Return ONLY this JSON, no markdown fences, no explanation:
 
 Strict rules:
 - headline: must start with inferred seniority + "${rules.role}", max 10 words
-- summary: only mention ${rules.role}-relevant technologies and achievements; omit anything unrelated to ${rules.role}
+- summary: write in first person as a personal narrative ("I have", "I specialize", "I've built"); do NOT start with or repeat the job title/seniority from the headline; only mention ${rules.role}-relevant technologies and achievements; omit anything unrelated to ${rules.role}
 - skills: include ONLY skills within this scope: ${rules.skillScope}; hard-exclude ${rules.excludeSkills}; if a skill does not fit this scope, do not include it regardless of proficiency; max ${MAX_SKILLS} skills
-- experiences[].summary: one sentence describing what the candidate did that is relevant to ${rules.role}; if a role had no ${rules.role} work, write the closest applicable sentence
-- experiences[].highlights: rewrite each highlight to emphasize the ${rules.role} aspect of the work; omit highlights that have no connection to ${rules.role}; if fewer than 3 highlights are relevant, include only the relevant ones
-- experiences: include up to 5 most recent positions
+- experiences[].period: format dates as "Month Year" when month is available (e.g. "March 2024"), or just "Year" when only year is known; if the role has no endDate or endDate is empty, use "present" as end; example: "March 2024 – September 2025" or "August 2019 – present"
+- experiences[].summary: one sentence in first person ("I built", "I led", "I worked") describing what the candidate did relevant to ${rules.role}
+- experiences[].highlights: write each highlight in first person ("I reduced...", "I built...", "I led..."); emphasize the ${rules.role} aspect; omit highlights unrelated to ${rules.role}; include all relevant ones up to 6 (may be fewer if not enough relevant highlights exist)
+- experiences: order by most recent first; include up to 5 most recent positions
 - projects: always []
 - callToAction: always "Let's connect"
 - grounding: every skill, company, role, date, and achievement must come verbatim or paraphrased from the experience text; never invent or assume facts not present

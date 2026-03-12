@@ -7,9 +7,22 @@ services:
     volumes:
       # Mount source so changes are picked up without rebuilding
       - ../apps/api/src:/repo/apps/api/src:ro
+      - ../apps/api/tsconfig.json:/repo/apps/api/tsconfig.json:ro
+      - ../apps/api/tsconfig.build.json:/repo/apps/api/tsconfig.build.json:ro
+      - ../apps/api/nest-cli.json:/repo/apps/api/nest-cli.json:ro
+      - ../apps/api/system-prompt.md:/repo/apps/api/system-prompt.md:ro
       - ../packages/shared-types/src:/repo/packages/shared-types/src:ro
+      - ../packages/shared-types/dist:/repo/packages/shared-types/dist:ro
       - ../packages/experience-data/src:/repo/packages/experience-data/src:ro
+      - ../packages/experience-data/dist:/repo/packages/experience-data/dist:ro
       - ../packages/experience-data/markdown:/repo/packages/experience-data/markdown:ro
+      - ../packages/tsconfig:/repo/packages/tsconfig:ro
     command: ["pnpm", "--filter", "@repo/api", "dev"]
     environment:
       NODE_ENV: development
+
+  seed:
+    volumes:
+      - ../apps/api/dist:/repo/apps/api/dist:ro
+      - ../packages/experience-data/dist:/repo/packages/experience-data/dist:ro
+      - ../packages/experience-data/markdown:/repo/packages/experience-data/markdown:ro

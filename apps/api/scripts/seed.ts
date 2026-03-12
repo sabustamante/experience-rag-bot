@@ -69,6 +69,10 @@ async function ensureSchema() {
   `);
 }
 
+async function clearChunks() {
+  await pool.query("TRUNCATE TABLE experience_chunks");
+}
+
 async function upsertChunk(id: string, content: string, metadata: unknown, embedding: number[]) {
   const vectorLiteral = `[${embedding.join(",")}]`;
   await pool.query(
@@ -88,7 +92,10 @@ async function main() {
   console.log("🌱 Starting seed...\n");
 
   await ensureSchema();
-  console.log("✓ Database schema ready\n");
+  console.log("✓ Database schema ready");
+
+  await clearChunks();
+  console.log("✓ Cleared existing chunks\n");
 
   const data = parseExperienceData();
   const chunks = chunkExperienceData(data);

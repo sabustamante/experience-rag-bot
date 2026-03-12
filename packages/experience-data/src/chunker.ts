@@ -1,5 +1,37 @@
 import type { ChunkMetadata, ExperienceChunk, ExperienceData } from "@repo/shared-types";
 
+// ─── Date helpers ─────────────────────────────────────────────────────────────
+
+const MONTHS = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
+
+function formatDate(date: string): string {
+  if (!date) return "";
+  const parts = date.split("-");
+  const year = parts[0];
+  const month = parts[1];
+  if (!month) return year;
+  return `${MONTHS[parseInt(month, 10) - 1]} ${year}`;
+}
+
+function formatPeriod(startDate: string, endDate: string | undefined): string {
+  const start = formatDate(startDate);
+  const end = endDate ? formatDate(endDate) : "present";
+  return `${start} – ${end}`;
+}
+
 // ─── Chunking strategies ──────────────────────────────────────────────────────
 
 function chunkSummary(data: ExperienceData): ExperienceChunk[] {
@@ -43,14 +75,16 @@ function chunkSkills(data: ExperienceData): ExperienceChunk[] {
 function chunkWorkExperiences(data: ExperienceData): ExperienceChunk[] {
   const chunks: ExperienceChunk[] = [];
 
-  for (const exp of data.workExperiences) {
+  const sorted = [...data.workExperiences].sort((a, b) => b.startDate.localeCompare(a.startDate));
+
+  for (const exp of sorted) {
     // One chunk for the overall role summary
     const summaryId = `work-${exp.id}-summary`;
     chunks.push({
       chunkId: summaryId,
       content: [
         `Role: ${exp.role} at ${exp.company.name}`,
-        `Period: ${exp.startDate} – ${exp.endDate ?? "present"}`,
+        `Period: ${formatPeriod(exp.startDate, exp.endDate)}`,
         `Industry: ${exp.company.industry ?? "N/A"}`,
         `Tech Stack: ${exp.techStack.join(", ")}`,
         `Summary: ${exp.summary}`,
@@ -112,7 +146,7 @@ function chunkEducation(data: ExperienceData): ExperienceChunk[] {
       content: [
         `Education: ${edu.degree} in ${edu.field}`,
         `Institution: ${edu.institution}`,
-        `Period: ${edu.startDate} – ${edu.endDate ?? "present"}`,
+        `Period: ${formatPeriod(edu.startDate, edu.endDate)}`,
         edu.achievements?.length
           ? `Achievements:\n${edu.achievements.map((a) => `- ${a}`).join("\n")}`
           : "",
