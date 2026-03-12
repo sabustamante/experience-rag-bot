@@ -13,10 +13,7 @@ export interface LLMOptions {
 
 export interface ILLMProvider {
   complete(messages: ChatMessage[], options?: LLMOptions): Promise<string>;
-  stream(
-    messages: ChatMessage[],
-    options?: LLMOptions,
-  ): AsyncIterable<string>;
+  stream(messages: ChatMessage[], options?: LLMOptions): AsyncIterable<string>;
 }
 
 // ─── Embedding Provider ───────────────────────────────────────────────────────
@@ -80,11 +77,7 @@ export interface IVectorStore {
 export interface IRelationalStore {
   findSession(sessionId: string): Promise<unknown | null>;
   createSession(sessionId: string): Promise<void>;
-  appendMessage(
-    sessionId: string,
-    role: ChatRole,
-    content: string,
-  ): Promise<void>;
+  appendMessage(sessionId: string, role: ChatRole, content: string): Promise<void>;
   getMessages(sessionId: string): Promise<ChatMessage[]>;
 }
 
@@ -99,6 +92,7 @@ export interface ExperienceChunk {
 export interface IExperienceSource {
   load(): Promise<ExperienceData>;
   chunks(): Promise<ExperienceChunk[]>;
+  rawContent(): Promise<string>;
 }
 
 // ─── Cache Provider ───────────────────────────────────────────────────────────

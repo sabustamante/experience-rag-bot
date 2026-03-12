@@ -59,15 +59,17 @@ function readMarkdownFiles(dir: string): matter.GrayMatterFile<string>[] {
 // ─── Parsers ─────────────────────────────────────────────────────────────────
 
 function parseSummary(): string {
-  const file = matter(fs.readFileSync(resolveMarkdownPath(path.join(MARKDOWN_DIR, "summary")), "utf-8"));
+  const file = matter(
+    fs.readFileSync(resolveMarkdownPath(path.join(MARKDOWN_DIR, "summary")), "utf-8"),
+  );
   // Strip frontmatter and heading, return plain text
-  return file.content
-    .replace(/^#\s+.+\n/m, "")
-    .trim();
+  return file.content.replace(/^#\s+.+\n/m, "").trim();
 }
 
 function parseSkills(): Skill[] {
-  const file = matter(fs.readFileSync(resolveMarkdownPath(path.join(MARKDOWN_DIR, "skills")), "utf-8"));
+  const file = matter(
+    fs.readFileSync(resolveMarkdownPath(path.join(MARKDOWN_DIR, "skills")), "utf-8"),
+  );
   const skills: Skill[] = [];
 
   let currentCategory = "";
@@ -127,16 +129,16 @@ function parseWorkExperiences(): WorkExperience[] {
         title: `Achievement ${i + 1}`,
         description: line,
       })),
-      techStack: Array.isArray(fm["techStack"])
-        ? (fm["techStack"] as string[])
-        : [],
+      techStack: Array.isArray(fm["techStack"]) ? (fm["techStack"] as string[]) : [],
       projects: [],
     };
   });
 }
 
 function parseEducation(): Education[] {
-  const file = matter(fs.readFileSync(resolveMarkdownPath(path.join(MARKDOWN_DIR, "education")), "utf-8"));
+  const file = matter(
+    fs.readFileSync(resolveMarkdownPath(path.join(MARKDOWN_DIR, "education")), "utf-8"),
+  );
   const educations: Education[] = [];
 
   const blocks = file.content.split(/^##\s+/m).filter(Boolean);
@@ -186,6 +188,34 @@ function extractSection(content: string, heading: string): string[] {
   }
 
   return lines;
+}
+
+// ─── Raw markdown export ──────────────────────────────────────────────────────
+
+export function getRawMarkdown(): string {
+  const parts: string[] = [];
+
+  const tryRead = (stem: string, label: string) => {
+    try {
+      const content = fs.readFileSync(resolveMarkdownPath(path.join(MARKDOWN_DIR, stem)), "utf-8");
+      parts.push(`# ${label}\n\n${content.trim()}`);
+    } catch {
+      // file not found — skip
+    }
+  };
+
+  tryRead("summary", "Summary");
+  tryRead("skills", "Skills");
+  tryRead("education", "Education");
+
+  const companiesDir = path.join(MARKDOWN_DIR, "companies");
+  if (fs.existsSync(companiesDir)) {
+    for (const { content } of readMarkdownFiles(companiesDir)) {
+      parts.push(content.trim());
+    }
+  }
+
+  return parts.join("\n\n---\n\n");
 }
 
 // ─── Main export ─────────────────────────────────────────────────────────────

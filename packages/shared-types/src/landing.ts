@@ -1,4 +1,6 @@
-export type ProfileType = "frontend" | "backend" | "fullstack" | "general";
+export type ProfileType = "frontend" | "backend" | "fullstack";
+
+export type Language = "en" | "es";
 
 export interface LandingSkill {
   name: string;

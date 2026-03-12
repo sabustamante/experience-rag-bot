@@ -1,4 +1,15 @@
+import type { Language, LandingContent, ProfileType } from "@repo/shared-types";
+
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
+
+export async function fetchLanding(
+  profile: ProfileType,
+  language: Language = "en",
+): Promise<LandingContent> {
+  const res = await fetch(`${API}/api/landing/${profile}?lang=${language}`, { cache: "no-store" });
+  if (!res.ok) throw new Error(`Failed to fetch landing content for profile: ${profile}`);
+  return res.json() as Promise<LandingContent>;
+}
 
 /**
  * Consumes the SSE stream from POST /api/chat/message.
@@ -9,11 +20,12 @@ export async function streamChat(
   sessionId: string,
   onToken: (token: string) => void,
   signal?: AbortSignal,
+  language: Language = "en",
 ): Promise<void> {
   const res = await fetch(`${API}/api/chat/message`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ message, sessionId }),
+    body: JSON.stringify({ message, sessionId, language }),
     signal,
   });
 
