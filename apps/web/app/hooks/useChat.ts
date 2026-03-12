@@ -4,6 +4,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import type { ChatMessage } from "@repo/shared-types";
 
+import ui from "@ui-config";
+
 import { streamChat } from "@/app/lib/api-client";
 
 const SESSION_KEY = "chat_session_id";
@@ -66,6 +68,7 @@ export function useChat() {
             });
           },
           controller.signal,
+          ui.language,
         );
       } catch (err) {
         if ((err as Error).name !== "AbortError") {

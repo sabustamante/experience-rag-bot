@@ -23,7 +23,11 @@ export function LandingShell({ initial }: Props) {
     <div className="min-h-dvh bg-white">
       <div className="max-w-2xl mx-auto px-4 pb-24">
         {/* Hero */}
-        <Hero headline={content?.headline ?? ""} isLoading={isLoading && !content} />
+        <Hero
+          headline={content?.headline ?? ""}
+          summary={content?.summary ?? ""}
+          isLoading={isLoading}
+        />
 
         {/* Profile tabs */}
         <div className="mb-8">

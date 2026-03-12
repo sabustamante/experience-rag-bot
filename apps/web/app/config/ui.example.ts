@@ -2,6 +2,12 @@ import type { UiConfig } from "./ui.types";
 
 const ui: UiConfig = {
   name: "Your Name",
+  language: "en",
+  profiles: [
+    { key: "fullstack", label: "Full-stack" },
+    { key: "frontend", label: "Frontend" },
+    { key: "backend", label: "Backend" },
+  ],
   chat: {
     onlineStatus: "Online",
     emptyHeading: "Ask me anything",

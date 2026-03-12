@@ -20,7 +20,7 @@ export class ChatController {
     res.flushHeaders();
 
     try {
-      for await (const token of this.chatService.chat(dto.message, dto.sessionId)) {
+      for await (const token of this.chatService.chat(dto.message, dto.sessionId, dto.language)) {
         res.write(`data: ${JSON.stringify({ token })}\n\n`);
       }
       res.write("data: [DONE]\n\n");

@@ -4,12 +4,6 @@ import type { ProfileType } from "@repo/shared-types";
 
 import { PROFILES } from "@/app/hooks/useLandingProfile";
 
-const LABELS: Record<ProfileType, string> = {
-  fullstack: "Full-stack",
-  frontend: "Frontend",
-  backend: "Backend",
-};
-
 interface Props {
   active: ProfileType;
   onChange: (profile: ProfileType) => void;
@@ -18,17 +12,17 @@ interface Props {
 export function ProfileTabs({ active, onChange }: Props) {
   return (
     <div className="flex gap-1 bg-gray-100 rounded-xl p-1 w-fit mx-auto">
-      {PROFILES.map((profile) => (
+      {PROFILES.map(({ key, label }) => (
         <button
-          key={profile}
-          onClick={() => onChange(profile)}
+          key={key}
+          onClick={() => onChange(key)}
           className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all cursor-pointer ${
-            active === profile
+            active === key
               ? "bg-white text-gray-900 shadow-sm"
               : "text-gray-500 hover:text-gray-700"
           }`}
         >
-          {LABELS[profile]}
+          {label}
         </button>
       ))}
     </div>

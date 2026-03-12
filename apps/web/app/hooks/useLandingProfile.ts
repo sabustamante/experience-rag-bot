@@ -4,9 +4,12 @@ import { useEffect, useState } from "react";
 
 import type { LandingContent, ProfileType } from "@repo/shared-types";
 
+import ui from "@ui-config";
+
 import { fetchLanding } from "@/app/lib/api-client";
 
-export const PROFILES: ProfileType[] = ["fullstack", "frontend", "backend"];
+export const PROFILES = ui.profiles;
+const { language } = ui;
 
 interface State {
   content: LandingContent | null;
@@ -15,7 +18,9 @@ interface State {
 }
 
 export function useLandingProfile(initial?: LandingContent) {
-  const [activeProfile, setActiveProfile] = useState<ProfileType>(initial?.profile ?? "fullstack");
+  const [activeProfile, setActiveProfile] = useState<ProfileType>(
+    initial?.profile ?? PROFILES[0]?.key ?? "fullstack",
+  );
   const [state, setState] = useState<State>({
     content: initial ?? null,
     isLoading: !initial,
@@ -23,9 +28,8 @@ export function useLandingProfile(initial?: LandingContent) {
   });
 
   useEffect(() => {
-    if (initial && activeProfile === initial.profile) return;
     setState((s) => ({ ...s, isLoading: true, error: null }));
-    fetchLanding(activeProfile)
+    fetchLanding(activeProfile, language)
       .then((content) => setState({ content, isLoading: false, error: null }))
       .catch((err: unknown) =>
         setState((s) => ({
@@ -34,7 +38,7 @@ export function useLandingProfile(initial?: LandingContent) {
           error: err instanceof Error ? err.message : "Failed to load",
         })),
       );
-  }, [activeProfile, initial]);
+  }, [activeProfile]);
 
   return { ...state, activeProfile, setActiveProfile };
 }

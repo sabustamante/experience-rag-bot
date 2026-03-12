@@ -3,7 +3,7 @@ import * as path from "path";
 
 import { Inject, Injectable } from "@nestjs/common";
 
-import type { ChatMessage } from "@repo/shared-types";
+import type { ChatMessage, Language } from "@repo/shared-types";
 
 import type { IEmbeddingProvider, ILLMProvider, IVectorStore } from "../ports";
 import { PORT_TOKENS } from "../ports";
@@ -19,6 +19,11 @@ function loadSystemPrompt(): string {
     "No system prompt file found. Add system-prompt.md or system-prompt.example.md next to the API.",
   );
 }
+
+const LANGUAGE_INSTRUCTION: Record<Language, string> = {
+  en: "Always respond in English.",
+  es: "Responde siempre en español.",
+};
 
 const TOP_K = 5;
 
@@ -37,7 +42,11 @@ export class ChatService {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async *chat(message: string, _sessionId: string): AsyncIterable<string> {
+  async *chat(
+    message: string,
+    _sessionId: string,
+    language: Language = "en",
+  ): AsyncIterable<string> {
     // 1. Embed the user query
     const queryEmbedding = await this.embeddings.embed(message);
 
@@ -58,7 +67,8 @@ export class ChatService {
       },
     ];
 
-    // 5. Stream LLM response
-    yield* this.llm.stream(messages, { systemPrompt: this.systemPrompt });
+    // 5. Stream LLM response with language instruction appended to system prompt
+    const systemPrompt = `${this.systemPrompt}\n\n${LANGUAGE_INSTRUCTION[language]}`;
+    yield* this.llm.stream(messages, { systemPrompt });
   }
 }
