@@ -2,6 +2,8 @@
 
 import type { LandingContent } from "@repo/shared-types";
 
+import ui from "@ui-config";
+
 import { useLandingProfile } from "@/app/hooks/useLandingProfile";
 
 import { ChatWidget } from "./ChatWidget";
@@ -37,7 +39,7 @@ export function LandingShell({ initial }: Props) {
         {/* Skills */}
         <section className="mb-10">
           <h2 className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-4 text-center">
-            Skills
+            {ui.sections.skills.title}
           </h2>
           <DynamicSkills skills={content?.skills ?? []} isLoading={isLoading} />
         </section>
@@ -45,7 +47,7 @@ export function LandingShell({ initial }: Props) {
         {/* Experience */}
         <section>
           <h2 className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-4 text-center">
-            Experience
+            {ui.sections.experience.title}
           </h2>
           <DynamicExperience experiences={content?.experiences ?? []} isLoading={isLoading} />
         </section>

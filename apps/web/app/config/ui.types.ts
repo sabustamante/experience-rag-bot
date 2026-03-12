@@ -9,6 +9,14 @@ export interface UiConfig {
   name: string;
   language: Language;
   profiles: ProfileConfig[];
+  hero: {
+    chatCta: string;
+    downloadCvCta: string;
+  };
+  sections: {
+    skills: { title: string };
+    experience: { title: string };
+  };
   chat: {
     onlineStatus: string;
     emptyHeading: string;

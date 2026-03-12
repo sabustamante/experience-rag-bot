@@ -46,14 +46,14 @@ export function Hero({ headline, summary, isLoading }: Props) {
           href="/chat"
           className="px-5 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 transition-colors"
         >
-          Chat with me
+          {ui.hero.chatCta}
         </Link>
         <button
           disabled
           className="px-5 py-2.5 rounded-xl border border-gray-300 text-gray-400 text-sm font-medium cursor-not-allowed"
           title="Coming soon"
         >
-          Download CV
+          {ui.hero.downloadCvCta}
         </button>
       </div>
     </div>
