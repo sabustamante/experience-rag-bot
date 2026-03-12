@@ -13,8 +13,8 @@ const mockLandingContent: LandingContent = {
   headline: "Full-Stack Engineer building scalable products",
   summary: "Experienced engineer with 5+ years.",
   skills: [
-    { name: "TypeScript", category: "Languages", highlight: true },
-    { name: "NestJS", category: "Frameworks & Libraries", highlight: true },
+    { name: "TypeScript", category: "Languages" },
+    { name: "NestJS", category: "Frameworks & Libraries" },
   ],
   experiences: [
     {
