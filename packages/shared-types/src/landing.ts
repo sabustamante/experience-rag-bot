@@ -5,7 +5,6 @@ export type Language = "en" | "es";
 export interface LandingSkill {
   name: string;
   category: string;
-  highlight: boolean;
 }
 
 export interface LandingExperience {

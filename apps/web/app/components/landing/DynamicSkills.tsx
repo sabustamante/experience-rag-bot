@@ -21,11 +21,7 @@ export function DynamicSkills({ skills, isLoading }: Props) {
       {skills.map((skill) => (
         <span
           key={skill.name}
-          className={`px-3 py-1 rounded-full text-sm border transition-colors ${
-            skill.highlight
-              ? "bg-indigo-50 border-indigo-200 text-indigo-700 font-medium"
-              : "bg-gray-50 border-gray-200 text-gray-600"
-          }`}
+          className="px-3 py-1 rounded-full text-sm border border-gray-200 bg-gray-50 text-gray-600"
         >
           {skill.name}
         </span>

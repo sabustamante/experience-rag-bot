@@ -91,7 +91,7 @@ Return ONLY this JSON, no markdown fences, no explanation:
   "headline": "<seniority> ${rules.role} — max 10 words total, specific and punchy>",
   "summary": "<2-3 sentences focused exclusively on ${rules.role} strengths>",
   "skills": [
-    { "name": "<skill>", "category": "<category>", "highlight": <true if expert or advanced> }
+    { "name": "<skill>", "category": "<category>" }
   ],
   "experiences": [
     {
@@ -109,7 +109,7 @@ Return ONLY this JSON, no markdown fences, no explanation:
 Strict rules:
 - headline: must start with inferred seniority + "${rules.role}", max 10 words
 - summary: only mention ${rules.role}-relevant technologies and achievements; omit anything unrelated to ${rules.role}
-- skills: include ONLY skills within this scope: ${rules.skillScope}; hard-exclude ${rules.excludeSkills}; if a skill does not fit this scope, do not include it regardless of proficiency; max ${MAX_SKILLS} skills; highlight=true only for expert/advanced proficiency
+- skills: include ONLY skills within this scope: ${rules.skillScope}; hard-exclude ${rules.excludeSkills}; if a skill does not fit this scope, do not include it regardless of proficiency; max ${MAX_SKILLS} skills
 - experiences[].summary: one sentence describing what the candidate did that is relevant to ${rules.role}; if a role had no ${rules.role} work, write the closest applicable sentence
 - experiences[].highlights: rewrite each highlight to emphasize the ${rules.role} aspect of the work; omit highlights that have no connection to ${rules.role}; if fewer than 3 highlights are relevant, include only the relevant ones
 - experiences: include up to 5 most recent positions
