@@ -1,0 +1,252 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+
+env:
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+  ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
+  ECS_CLUSTER: experience-rag-bot
+  ECS_SERVICE: Api-Service # CDK names it <StackId>-Service
+  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+  TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
+
+jobs:
+  # ─── 0. Check if AWS is configured ───────────────────────────────────────
+  # Lets the repo work as a public template: test always runs,
+  # deploy jobs are skipped silently if AWS secrets are not set.
+  check-aws:
+    name: Check AWS secrets configured
+    runs-on: ubuntu-latest
+    outputs:
+      configured: ${{ steps.check.outputs.configured }}
+    steps:
+      - id: check
+        run: |
+          if [ -n "${{ secrets.AWS_ACCESS_KEY_ID }}" ]; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::AWS secrets not configured — deploy jobs will be skipped."
+          fi
+
+  # ─── 1. Test ──────────────────────────────────────────────────────────────
+  test:
+    name: Lint · Typecheck · Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm turbo lint typecheck test
+
+  # ─── 2. Build API image + push to ECR ────────────────────────────────────
+  build-api:
+    name: Build & Push API image
+    runs-on: ubuntu-latest
+    needs: [test, check-aws]
+    if: needs.check-aws.outputs.configured == 'true'
+    outputs:
+      image-tag: ${{ steps.meta.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Set image tag
+        id: meta
+        run: echo "tag=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Build & push to ECR
+        env:
+          IMAGE_TAG: ${{ steps.meta.outputs.tag }}
+        run: bash infra/scripts/push-ecr.sh
+
+  # ─── 3. Deploy API to ECS ────────────────────────────────────────────────
+  deploy-api:
+    name: Deploy API to ECS
+    runs-on: ubuntu-latest
+    needs: build-api
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Update ECS service with new image
+        env:
+          IMAGE_TAG: ${{ needs.build-api.outputs.image-tag }}
+        run: |
+          # Get current task definition
+          TASK_DEF=$(aws ecs describe-task-definition \
+            --task-definition Api-TaskDef \
+            --query 'taskDefinition' \
+            --output json)
+
+          # Replace image tag
+          NEW_TASK_DEF=$(echo "$TASK_DEF" | jq \
+            --arg IMAGE "$ECR_REGISTRY/experience-rag-bot/api:$IMAGE_TAG" \
+            '.containerDefinitions[0].image = $IMAGE |
+             del(.taskDefinitionArn, .revision, .status, .requiresAttributes, .placementConstraints, .compatibilities, .registeredAt, .registeredBy)')
+
+          # Register new revision
+          NEW_TASK_ARN=$(aws ecs register-task-definition \
+            --cli-input-json "$NEW_TASK_DEF" \
+            --query 'taskDefinition.taskDefinitionArn' \
+            --output text)
+
+          # Update service
+          aws ecs update-service \
+            --cluster "$ECS_CLUSTER" \
+            --service "$ECS_SERVICE" \
+            --task-definition "$NEW_TASK_ARN" \
+            --force-new-deployment
+
+          # Wait for stable deployment
+          aws ecs wait services-stable \
+            --cluster "$ECS_CLUSTER" \
+            --services "$ECS_SERVICE"
+
+          echo "==> Deployed image: $IMAGE_TAG"
+
+  # ─── 4. Build frontend ───────────────────────────────────────────────────
+  build-web:
+    name: Build Web (Next.js static export)
+    runs-on: ubuntu-latest
+    needs: [test, check-aws]
+    if: needs.check-aws.outputs.configured == 'true'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Build
+        env:
+          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
+        run: pnpm --filter @repo/web build
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-out
+          path: apps/web/out/
+          retention-days: 1
+
+  # ─── 5. Deploy frontend to S3 + CloudFront ───────────────────────────────
+  deploy-web:
+    name: Deploy Frontend to S3 + CloudFront
+    runs-on: ubuntu-latest
+    needs: build-web
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: web-out
+          path: apps/web/out/
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Sync to S3 (static assets — long cache)
+        run: |
+          aws s3 sync apps/web/out/ "s3://${{ secrets.S3_BUCKET }}" \
+            --delete \
+            --cache-control "public,max-age=31536000,immutable" \
+            --exclude "*.html" \
+            --exclude "*.json"
+
+      - name: Sync to S3 (HTML + JSON — no cache)
+        run: |
+          aws s3 sync apps/web/out/ "s3://${{ secrets.S3_BUCKET }}" \
+            --cache-control "public,max-age=0,must-revalidate" \
+            --include "*.html" \
+            --include "*.json"
+
+      - name: Invalidate CloudFront cache
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id "${{ secrets.CF_DISTRIBUTION_ID }}" \
+            --paths "/*"
+
+  # ─── 6. Seed (only when experience-data changes) ─────────────────────────
+  seed:
+    name: Re-seed pgvector
+    runs-on: ubuntu-latest
+    needs: [deploy-api, check-aws]
+    if: |
+      needs.check-aws.outputs.configured == 'true' && (
+        contains(toJSON(github.event.commits.*.modified), 'packages/experience-data') ||
+        contains(toJSON(github.event.commits.*.added), 'packages/experience-data')
+      )
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Run seed ECS task
+        run: |
+          TASK_ARN=$(aws ecs run-task \
+            --cluster "$ECS_CLUSTER" \
+            --task-definition Api-TaskDef \
+            --launch-type FARGATE \
+            --network-configuration "awsvpcConfiguration={subnets=[${{ secrets.PRIVATE_SUBNET_IDS }}],securityGroups=[${{ secrets.ECS_SECURITY_GROUP_ID }}],assignPublicIp=DISABLED}" \
+            --overrides '{"containerOverrides":[{"name":"api","command":["node","dist/scripts/seed.js"]}]}' \
+            --query 'tasks[0].taskArn' \
+            --output text)
+
+          echo "==> Seed task started: $TASK_ARN"
+
+          aws ecs wait tasks-stopped \
+            --cluster "$ECS_CLUSTER" \
+            --tasks "$TASK_ARN"
+
+          EXIT_CODE=$(aws ecs describe-tasks \
+            --cluster "$ECS_CLUSTER" \
+            --tasks "$TASK_ARN" \
+            --query 'tasks[0].containers[0].exitCode' \
+            --output text)
+
+          if [ "$EXIT_CODE" != "0" ]; then
+            echo "Seed task failed with exit code $EXIT_CODE"
+            exit 1
+          fi
+
+          echo "==> Seed completed successfully."

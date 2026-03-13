@@ -206,6 +206,25 @@ importers:
         specifier: ^5
         version: 5.9.3
 
+  infra/cdk:
+    dependencies:
+      aws-cdk-lib:
+        specifier: ^2.170.0
+        version: 2.243.0(constructs@10.5.1)
+      constructs:
+        specifier: ^10.4.2
+        version: 10.5.1
+    devDependencies:
+      aws-cdk:
+        specifier: ^2.170.0
+        version: 2.1111.0
+      ts-node:
+        specifier: ^10.9.2
+        version: 10.9.2(@types/node@22.19.15)(typescript@5.9.3)
+      typescript:
+        specifier: ^5.7.3
+        version: 5.9.3
+
   packages/eslint-config:
     devDependencies:
       '@typescript-eslint/eslint-plugin':
@@ -296,6 +315,19 @@ packages:
   '@angular-devkit/schematics@19.2.19':
     resolution: {integrity: sha512-J4Jarr0SohdrHcb40gTL4wGPCQ952IMWF1G/MSAQfBAPvA9ZKApYhpxcY7PmehVePve+ujpus1dGsJ7dPxz8Kg==}
     engines: {node: ^18.19.1 || ^20.11.1 || >=22.0.0, npm: ^6.11.0 || ^7.5.6 || >=8.0.0, yarn: '>= 1.13.0'}
+
+  '@aws-cdk/asset-awscli-v1@2.2.263':
+    resolution: {integrity: sha512-X9JvcJhYcb7PHs8R7m4zMablO5C9PGb/hYfLnxds9h/rKJu6l7MiXE/SabCibuehxPnuO/vk+sVVJiUWrccarQ==}
+
+  '@aws-cdk/asset-node-proxy-agent-v6@2.1.1':
+    resolution: {integrity: sha512-We4bmHaowOPHr+IQR4/FyTGjRfjgBj4ICMjtqmJeBDWad3Q/6St12NT07leNtyuukv2qMhtSZJQorD8KpKTwRA==}
+
+  '@aws-cdk/cloud-assembly-schema@52.2.0':
+    resolution: {integrity: sha512-ourZjixQ/UfsZc7gdk3vt1eHBODMUjQTYYYCY3ZX8fiXyHtWNDAYZPrXUK96jpCC2fLP+tfHTJrBjZ563pmcEw==}
+    engines: {node: '>= 18.0.0'}
+    bundledDependencies:
+      - jsonschema
+      - semver
 
   '@aws-crypto/crc32@5.2.0':
     resolution: {integrity: sha512-nLbCWqQNgUiwwtFsen1AdzAtvuLRsQS8rYgMuxCrdKf9kOssamGLuPwyTY9wyYblNr9+1XM8v6zoDTPPSIeANg==}
@@ -2099,6 +2131,30 @@ packages:
     resolution: {integrity: sha512-wvUjBtSGN7+7SjNpq/9M2Tg350UZD3q62IFZLbRAR1bSMlCo1ZaeW+BJ+D090e4hIIZLBcTDWe4Mh4jvUDajzQ==}
     engines: {node: '>= 0.4'}
 
+  aws-cdk-lib@2.243.0:
+    resolution: {integrity: sha512-qIhg/3gSNeZ9LoVmDATO45HPk+POkoCfPZRezeOPhd2kAJ/wzYswyUcMqpDWXrlRrEVYntxsykQs+2eMA04Isg==}
+    engines: {node: '>= 20.0.0'}
+    peerDependencies:
+      constructs: ^10.5.0
+    bundledDependencies:
+      - '@balena/dockerignore'
+      - '@aws-cdk/cloud-assembly-api'
+      - case
+      - fs-extra
+      - ignore
+      - jsonschema
+      - minimatch
+      - punycode
+      - semver
+      - table
+      - yaml
+      - mime-types
+
+  aws-cdk@2.1111.0:
+    resolution: {integrity: sha512-69AVF04cxbAhYzmeJYtUF5bs6ruNnH05EQZJfjadk5Lpg+HVaJY2NjG/2qgsMmKrfRgvLet73Ir8ehVlAaaGng==}
+    engines: {node: '>= 18.0.0'}
+    hasBin: true
+
   axe-core@4.11.1:
     resolution: {integrity: sha512-BASOg+YwO2C+346x3LZOeoovTIoTrRqEsqMa6fmfAV0P+U9mFr9NsyOEpiYvFjbc64NMrSswhV50WdXzdb/Z5A==}
     engines: {node: '>=4'}
@@ -2372,6 +2428,9 @@ packages:
   consola@3.4.2:
     resolution: {integrity: sha512-5IKcdX0nnYavi6G7TtOhwkYzyjfJlatbjMjuLSfE2kYT5pMDOilZ4OvMhi637CcDICTmz3wARPoyhqyX1Y+XvA==}
     engines: {node: ^14.18.0 || >=16.10.0}
+
+  constructs@10.5.1:
+    resolution: {integrity: sha512-f/TfFXiS3G/yVIXDjOQn9oTlyu9Wo7Fxyjj7lb8r92iO81jR2uST+9MstxZTmDGx/CgIbxCXkFXgupnLTNxQZg==}
 
   content-disposition@1.0.1:
     resolution: {integrity: sha512-oIXISMynqSqm241k6kcQ5UwttDILMK4BiurCfGEREw6+X9jkkpEe5T9FZaApyLGGOnFuyMWZpdolTXMtvEJ08Q==}
@@ -5149,6 +5208,12 @@ snapshots:
     transitivePeerDependencies:
       - chokidar
 
+  '@aws-cdk/asset-awscli-v1@2.2.263': {}
+
+  '@aws-cdk/asset-node-proxy-agent-v6@2.1.1': {}
+
+  '@aws-cdk/cloud-assembly-schema@52.2.0': {}
+
   '@aws-crypto/crc32@5.2.0':
     dependencies:
       '@aws-crypto/util': 5.2.0
@@ -7458,6 +7523,15 @@ snapshots:
     dependencies:
       possible-typed-array-names: 1.1.0
 
+  aws-cdk-lib@2.243.0(constructs@10.5.1):
+    dependencies:
+      '@aws-cdk/asset-awscli-v1': 2.2.263
+      '@aws-cdk/asset-node-proxy-agent-v6': 2.1.1
+      '@aws-cdk/cloud-assembly-schema': 52.2.0
+      constructs: 10.5.1
+
+  aws-cdk@2.1111.0: {}
+
   axe-core@4.11.1: {}
 
   axobject-query@4.1.0: {}
@@ -7737,6 +7811,8 @@ snapshots:
       typedarray: 0.0.6
 
   consola@3.4.2: {}
+
+  constructs@10.5.1: {}
 
   content-disposition@1.0.1: {}
 
