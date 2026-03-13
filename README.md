@@ -42,6 +42,8 @@ experience-rag-bot/
 - Node.js 22+
 - pnpm 10+
 - Docker + Docker Compose
+- AWS account with Bedrock access enabled (Claude + Titan Embeddings models)
+- AWS CLI configured (`aws configure`)
 
 ### Install
 
@@ -49,12 +51,25 @@ experience-rag-bot/
 pnpm install
 ```
 
-### Quickstart (Docker)
+### Environment setup
 
 ```bash
 cp .env.example .env
-# Fill in AWS credentials and any other values
+```
 
+Edit `.env` and fill in:
+
+| Variable                     | Description                                                                      |
+| ---------------------------- | -------------------------------------------------------------------------------- |
+| `AWS_PROFILE`                | AWS CLI profile with Bedrock + ECR access                                        |
+| `BEDROCK_MODEL_ID`           | Claude inference profile ID (e.g. `us.anthropic.claude-haiku-4-5-20251001-v1:0`) |
+| `BEDROCK_EMBEDDING_MODEL_ID` | Embedding model (e.g. `amazon.titan-embed-text-v2:0`)                            |
+| `DOMAIN_NAME`                | Your domain (e.g. `example.com`) — only needed for CDK deploy                    |
+| `CERTIFICATE_ARN`            | ACM certificate ARN for your domain — only needed for CDK deploy                 |
+
+### Quickstart (Docker)
+
+```bash
 cd infra
 docker compose up -d
 # → postgres + API are healthy
@@ -64,6 +79,53 @@ docker compose --profile seed run seed
 
 curl localhost:3001/api/health
 # → { "status": "ok", ... }
+```
+
+### Deploy to AWS
+
+```bash
+# Load env vars (set -a exports them to child processes)
+set -a && source .env && set +a
+
+# 1. Bootstrap CDK (once per account/region)
+cd infra/cdk && npm install && npx cdk bootstrap && cd ../..
+
+# 2. Build and push the API image to ECR
+bash infra/scripts/push-ecr.sh
+
+# 3. Deploy all stacks
+cd infra/cdk && npx cdk deploy --all && cd ../..
+
+# 4. Build and deploy the frontend
+bash infra/scripts/deploy-frontend.sh
+```
+
+**Required AWS permissions** for the deploy user/role:
+
+- `AmazonEC2FullAccess`
+- `AmazonECS_FullAccess`
+- `AmazonRDSFullAccess`
+- `AmazonS3FullAccess`
+- `CloudFrontFullAccess`
+- `AWSCloudFormationFullAccess`
+- `IAMFullAccess`
+- `AmazonSSMFullAccess`
+- `AWSCertificateManagerFullAccess`
+
+**Required SSM parameters** (set once before deploying):
+
+```bash
+APP=experience-rag-bot
+aws ssm put-parameter --name "/$APP/prod/API_PORT"                 --value "3001"           --type String
+aws ssm put-parameter --name "/$APP/prod/AI_LLM_PROVIDER"          --value "bedrock"        --type String
+aws ssm put-parameter --name "/$APP/prod/AI_EMBEDDING_PROVIDER"    --value "bedrock"        --type String
+aws ssm put-parameter --name "/$APP/prod/BEDROCK_MODEL_ID"         --value "<your-model>"  --type String
+aws ssm put-parameter --name "/$APP/prod/BEDROCK_EMBEDDING_MODEL_ID" --value "<your-model>" --type String
+aws ssm put-parameter --name "/$APP/prod/EXPERIENCE_SOURCE"        --value "markdown"       --type String
+aws ssm put-parameter --name "/$APP/prod/CACHE_PROVIDER"           --value "memory"         --type String
+aws ssm put-parameter --name "/$APP/prod/CORS_ORIGINS"             --value "https://your-domain.com" --type String
+aws ssm put-parameter --name "/$APP/prod/RATE_LIMIT_TTL"           --value "60000"          --type String
+aws ssm put-parameter --name "/$APP/prod/RATE_LIMIT_MAX"           --value "20"             --type String
 ```
 
 ### Type check
@@ -124,9 +186,9 @@ services:
 | 0     | Monorepo scaffold                    | ✅ Done |
 | 1     | NestJS backend — RAG chat end-to-end | ✅ Done |
 | 2     | Docker Compose full stack locally    | ✅ Done |
-| 3     | Next.js landing + chat UI            | ⏳      |
+| 3     | Next.js landing + chat UI            | ✅ Done |
 | 4     | React Native mobile app              | ⏳      |
-| 5     | AWS deployment + CI/CD               | ⏳      |
+| 5     | AWS deployment + CI/CD               | ✅ Done |
 | 6     | CV generator (job posting → PDF)     | ⏳      |
 
 See [`roadmap/`](roadmap/) for detailed step-by-step plans per stage.

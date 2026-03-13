@@ -1,4 +1,5 @@
 import * as cdk from "aws-cdk-lib";
+import * as acm from "aws-cdk-lib/aws-certificatemanager";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
 import * as ecs from "aws-cdk-lib/aws-ecs";
 import * as ecr from "aws-cdk-lib/aws-ecr";
@@ -10,9 +11,14 @@ import { Construct } from "constructs";
 import { DatabaseStack } from "./database-stack";
 
 interface ApiStackProps extends cdk.StackProps {
+  appName: string;
   dbStack: DatabaseStack;
   /** ECR image tag to deploy (e.g. git-sha or "latest") */
   imageTag: string;
+  /** Custom domain for the API (e.g. api.example.com) */
+  domainName?: string;
+  /** ACM certificate ARN — required when domainName is set */
+  certificateArn?: string;
 }
 
 export class ApiStack extends cdk.Stack {
@@ -24,15 +30,17 @@ export class ApiStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: ApiStackProps) {
     super(scope, id, props);
 
+    const { appName, domainName, certificateArn } = props;
     const { vpc, dbSecurityGroup, dbInstance } = props.dbStack;
+    const ssmPrefix = `/${appName}/prod`;
 
     // ─── ECR repository ───────────────────────────────────────────────────
-    const repository = ecr.Repository.fromRepositoryName(this, "ApiRepo", "experience-rag-bot/api");
+    const repository = ecr.Repository.fromRepositoryName(this, "ApiRepo", `${appName}/api`);
 
     // ─── ECS Cluster ──────────────────────────────────────────────────────
     this.cluster = new ecs.Cluster(this, "Cluster", {
       vpc,
-      clusterName: "experience-rag-bot",
+      clusterName: appName,
       containerInsights: true,
     });
 
@@ -52,9 +60,7 @@ export class ApiStack extends cdk.Stack {
     taskRole.addToPolicy(
       new iam.PolicyStatement({
         actions: ["ssm:GetParameter", "ssm:GetParameters", "ssm:GetParametersByPath"],
-        resources: [
-          `arn:aws:ssm:${this.region}:${this.account}:parameter/experience-rag-bot/prod/*`,
-        ],
+        resources: [`arn:aws:ssm:${this.region}:${this.account}:parameter${ssmPrefix}/*`],
       }),
     );
 
@@ -83,9 +89,9 @@ export class ApiStack extends cdk.Stack {
 
     // ─── CloudWatch log group ─────────────────────────────────────────────
     const logGroup = new logs.LogGroup(this, "ApiLogs", {
-      logGroupName: "/ecs/experience-rag-bot/api",
+      logGroupName: `/ecs/${appName}/api`,
       retention: logs.RetentionDays.ONE_MONTH,
-      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      removalPolicy: cdk.RemovalPolicy.RETAIN,
     });
 
     // ─── Task definition ──────────────────────────────────────────────────
@@ -110,51 +116,45 @@ export class ApiStack extends cdk.Stack {
         startPeriod: cdk.Duration.seconds(30),
       },
       environment: {
-        // Non-sensitive values read from SSM at startup via environment
-        PORT: ssm.StringParameter.valueForStringParameter(
-          this,
-          "/experience-rag-bot/prod/API_PORT",
-        ),
+        PORT: ssm.StringParameter.valueForStringParameter(this, `${ssmPrefix}/API_PORT`),
         AI_LLM_PROVIDER: ssm.StringParameter.valueForStringParameter(
           this,
-          "/experience-rag-bot/prod/AI_LLM_PROVIDER",
+          `${ssmPrefix}/AI_LLM_PROVIDER`,
         ),
         AI_EMBEDDING_PROVIDER: ssm.StringParameter.valueForStringParameter(
           this,
-          "/experience-rag-bot/prod/AI_EMBEDDING_PROVIDER",
+          `${ssmPrefix}/AI_EMBEDDING_PROVIDER`,
         ),
         BEDROCK_MODEL_ID: ssm.StringParameter.valueForStringParameter(
           this,
-          "/experience-rag-bot/prod/BEDROCK_MODEL_ID",
+          `${ssmPrefix}/BEDROCK_MODEL_ID`,
         ),
         BEDROCK_EMBEDDING_MODEL_ID: ssm.StringParameter.valueForStringParameter(
           this,
-          "/experience-rag-bot/prod/BEDROCK_EMBEDDING_MODEL_ID",
+          `${ssmPrefix}/BEDROCK_EMBEDDING_MODEL_ID`,
         ),
         EXPERIENCE_SOURCE: ssm.StringParameter.valueForStringParameter(
           this,
-          "/experience-rag-bot/prod/EXPERIENCE_SOURCE",
+          `${ssmPrefix}/EXPERIENCE_SOURCE`,
         ),
         CACHE_PROVIDER: ssm.StringParameter.valueForStringParameter(
           this,
-          "/experience-rag-bot/prod/CACHE_PROVIDER",
+          `${ssmPrefix}/CACHE_PROVIDER`,
         ),
-        CORS_ORIGIN: ssm.StringParameter.valueForStringParameter(
-          this,
-          "/experience-rag-bot/prod/CORS_ORIGINS",
-        ),
+        CORS_ORIGIN: ssm.StringParameter.valueForStringParameter(this, `${ssmPrefix}/CORS_ORIGINS`),
         RATE_LIMIT_TTL: ssm.StringParameter.valueForStringParameter(
           this,
-          "/experience-rag-bot/prod/RATE_LIMIT_TTL",
+          `${ssmPrefix}/RATE_LIMIT_TTL`,
         ),
         RATE_LIMIT_MAX: ssm.StringParameter.valueForStringParameter(
           this,
-          "/experience-rag-bot/prod/RATE_LIMIT_MAX",
+          `${ssmPrefix}/RATE_LIMIT_MAX`,
         ),
         AWS_REGION: this.region,
         DB_PORT: "5432",
         DB_NAME: "experience_rag",
         DB_HOST: dbInstance.dbInstanceEndpointAddress,
+        DB_SSL: "true",
       },
       secrets: {
         DB_USER: ecs.Secret.fromSecretsManager(dbInstance.secret!, "username"),
@@ -170,9 +170,6 @@ export class ApiStack extends cdk.Stack {
       description: "Allow inbound from ALB to ECS tasks",
     });
 
-    // Allow ECS to connect to RDS
-    dbSecurityGroup.addIngressRule(ecsSg, ec2.Port.tcp(5432), "ECS tasks → RDS PostgreSQL");
-
     // ─── ALB ──────────────────────────────────────────────────────────────
     const albSg = new ec2.SecurityGroup(this, "AlbSg", {
       vpc,
@@ -181,7 +178,7 @@ export class ApiStack extends cdk.Stack {
     albSg.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(80), "HTTP");
     albSg.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(443), "HTTPS");
 
-    ecsSg.addIngressRule(albSg, ec2.Port.tcp(3001), "ALB → ECS tasks");
+    ecsSg.addIngressRule(albSg, ec2.Port.tcp(3001), "ALB to ECS tasks");
 
     this.alb = new elbv2.ApplicationLoadBalancer(this, "Alb", {
       vpc,
@@ -202,16 +199,34 @@ export class ApiStack extends cdk.Stack {
         unhealthyThresholdCount: 3,
       },
       deregistrationDelay: cdk.Duration.seconds(30),
-      // WebSocket support
-      stickinessCookieDuration: undefined,
     });
 
-    // HTTP → redirect to HTTPS (if you have a cert) or forward directly
-    // For initial deploy without a cert, use HTTP listener on 80
-    this.alb.addListener("HttpListener", {
-      port: 80,
-      defaultAction: elbv2.ListenerAction.forward([targetGroup]),
-    });
+    if (certificateArn) {
+      const certificate = acm.Certificate.fromCertificateArn(this, "ApiCert", certificateArn);
+
+      // HTTP → redirect to HTTPS
+      this.alb.addListener("HttpListener", {
+        port: 80,
+        defaultAction: elbv2.ListenerAction.redirect({
+          protocol: "HTTPS",
+          port: "443",
+          permanent: true,
+        }),
+      });
+
+      // HTTPS listener
+      this.alb.addListener("HttpsListener", {
+        port: 443,
+        certificates: [certificate],
+        defaultAction: elbv2.ListenerAction.forward([targetGroup]),
+      });
+    } else {
+      // No cert — plain HTTP
+      this.alb.addListener("HttpListener", {
+        port: 80,
+        defaultAction: elbv2.ListenerAction.forward([targetGroup]),
+      });
+    }
 
     // ─── Fargate service (Spot for cost savings) ──────────────────────────
     this.service = new ecs.FargateService(this, "Service", {
@@ -234,7 +249,7 @@ export class ApiStack extends cdk.Stack {
           base: 1, // at least 1 on-demand as fallback
         },
       ],
-      circuitBreaker: { rollback: true },
+      circuitBreaker: { rollback: false },
     });
 
     this.service.attachToApplicationTargetGroup(targetGroup);

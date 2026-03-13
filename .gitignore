@@ -45,3 +45,4 @@ infra/cdk/dist/
 
 # CDK outputs
 cdk.out/
+cdk.context.json

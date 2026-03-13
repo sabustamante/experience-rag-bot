@@ -22,6 +22,7 @@ export class PgVectorAdapter implements IVectorStore, OnModuleInit, OnModuleDest
   private readonly pool: Pool;
 
   constructor(private readonly config: ConfigService) {
+    const sslEnabled = this.config.get<string>("DB_SSL", "false") !== "false";
     this.pool = new Pool({
       host: this.config.get<string>("DB_HOST", "localhost"),
       port: this.config.get<number>("DB_PORT", 5432),
@@ -29,6 +30,7 @@ export class PgVectorAdapter implements IVectorStore, OnModuleInit, OnModuleDest
       user: this.config.get<string>("DB_USER", "postgres"),
       password: this.config.get<string>("DB_PASSWORD", "postgres"),
       max: 10,
+      ssl: sslEnabled ? { rejectUnauthorized: false } : false,
     });
   }
 

@@ -31,6 +31,7 @@ const pool = new Pool({
   database: process.env["DB_NAME"] ?? "experience_rag",
   user: process.env["DB_USER"] ?? "postgres",
   password: process.env["DB_PASSWORD"] ?? "postgres",
+  ssl: process.env["DB_SSL"] === "true" ? { rejectUnauthorized: false } : false,
 });
 
 const bedrockClient = new BedrockRuntimeClient({ region: AWS_REGION });
