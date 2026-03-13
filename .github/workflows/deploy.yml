@@ -8,7 +8,7 @@ env:
   AWS_REGION: ${{ secrets.AWS_REGION }}
   ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
   ECS_CLUSTER: experience-rag-bot
-  ECS_SERVICE: Api-Service # CDK names it <StackId>-Service
+  ECS_SERVICE: ${{ secrets.ECS_SERVICE }}
   TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
   TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
 
@@ -97,9 +97,15 @@ jobs:
         env:
           IMAGE_TAG: ${{ needs.build-api.outputs.image-tag }}
         run: |
-          # Get current task definition
+          # Discover task definition from the running service (works for any fork)
+          CURRENT_TASK_DEF_ARN=$(aws ecs describe-services \
+            --cluster "$ECS_CLUSTER" \
+            --services "$ECS_SERVICE" \
+            --query 'services[0].taskDefinition' \
+            --output text)
+
           TASK_DEF=$(aws ecs describe-task-definition \
-            --task-definition Api-TaskDef \
+            --task-definition "$CURRENT_TASK_DEF_ARN" \
             --query 'taskDefinition' \
             --output json)
 
@@ -150,7 +156,7 @@ jobs:
       - name: Build
         env:
           NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
-        run: pnpm --filter @repo/web build
+        run: pnpm turbo build --filter @repo/web
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
@@ -201,16 +207,12 @@ jobs:
             --distribution-id "${{ secrets.CF_DISTRIBUTION_ID }}" \
             --paths "/*"
 
-  # ─── 6. Seed (only when experience-data changes) ─────────────────────────
+  # ─── 6. Seed (runs after every API deploy) ───────────────────────────────
   seed:
     name: Re-seed pgvector
     runs-on: ubuntu-latest
     needs: [deploy-api, check-aws]
-    if: |
-      needs.check-aws.outputs.configured == 'true' && (
-        contains(toJSON(github.event.commits.*.modified), 'packages/experience-data') ||
-        contains(toJSON(github.event.commits.*.added), 'packages/experience-data')
-      )
+    if: needs.check-aws.outputs.configured == 'true'
     steps:
       - uses: actions/checkout@v4
 
@@ -225,7 +227,7 @@ jobs:
         run: |
           TASK_ARN=$(aws ecs run-task \
             --cluster "$ECS_CLUSTER" \
-            --task-definition Api-TaskDef \
+            --task-definition "$(aws ecs describe-services --cluster "$ECS_CLUSTER" --services "$ECS_SERVICE" --query 'services[0].taskDefinition' --output text)" \
             --launch-type FARGATE \
             --network-configuration "awsvpcConfiguration={subnets=[${{ secrets.PRIVATE_SUBNET_IDS }}],securityGroups=[${{ secrets.ECS_SECURITY_GROUP_ID }}],assignPublicIp=DISABLED}" \
             --overrides '{"containerOverrides":[{"name":"api","command":["node","dist/scripts/seed.js"]}]}' \

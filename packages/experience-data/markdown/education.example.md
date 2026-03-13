@@ -5,6 +5,7 @@ type: education
 # Education
 
 ## Bachelor's in Computer Science
+
 - institution: Universidad Example
 - degree: Bachelor of Science
 - field: Computer Science

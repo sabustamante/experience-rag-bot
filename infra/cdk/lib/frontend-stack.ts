@@ -1,19 +1,30 @@
 import * as cdk from "aws-cdk-lib";
-import * as s3 from "aws-cdk-lib/aws-s3";
+import * as acm from "aws-cdk-lib/aws-certificatemanager";
 import * as cloudfront from "aws-cdk-lib/aws-cloudfront";
 import * as origins from "aws-cdk-lib/aws-cloudfront-origins";
+import * as s3 from "aws-cdk-lib/aws-s3";
 import { Construct } from "constructs";
+
+interface FrontendStackProps extends cdk.StackProps {
+  appName: string;
+  /** Custom domain for the frontend (e.g. example.com) */
+  domainName?: string;
+  /** ACM certificate ARN — required when domainName is set */
+  certificateArn?: string;
+}
 
 export class FrontendStack extends cdk.Stack {
   public readonly bucket: s3.Bucket;
   public readonly distribution: cloudfront.Distribution;
 
-  constructor(scope: Construct, id: string, props: cdk.StackProps) {
+  constructor(scope: Construct, id: string, props: FrontendStackProps) {
     super(scope, id, props);
+
+    const { appName, domainName, certificateArn } = props;
 
     // ─── S3 bucket (private — served only via CloudFront OAC) ─────────────
     this.bucket = new s3.Bucket(this, "WebBucket", {
-      bucketName: `experience-rag-bot-web-${this.account}-${this.region}`,
+      bucketName: `${appName}-web-${this.account}-${this.region}`,
       versioned: true,
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
       enforceSSL: true,
@@ -21,9 +32,16 @@ export class FrontendStack extends cdk.Stack {
       autoDeleteObjects: false,
     });
 
+    const certificate =
+      domainName && certificateArn
+        ? acm.Certificate.fromCertificateArn(this, "FrontendCert", certificateArn)
+        : undefined;
+
     // ─── CloudFront distribution ──────────────────────────────────────────
     this.distribution = new cloudfront.Distribution(this, "Distribution", {
-      comment: "experience-rag-bot — Next.js static export",
+      comment: `${appName} — Next.js static export`,
+      domainNames: domainName ? [domainName] : undefined,
+      certificate,
       defaultBehavior: {
         origin: origins.S3BucketOrigin.withOriginAccessControl(this.bucket),
         viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
