@@ -37,3 +37,11 @@ pnpm-debug.log*
 
 # TypeScript
 *.tsbuildinfo
+
+# AWS — NEVER commit credentials
+.aws/credentials
+.aws/config
+infra/cdk/dist/
+
+# CDK outputs
+cdk.out/

@@ -19,7 +19,7 @@
   - Policies: `AmazonECS_FullAccess`, `AmazonEC2ContainerRegistryFullAccess`, `AmazonRDSFullAccess`, `AmazonS3FullAccess`, `CloudFrontFullAccess`, `AmazonSSMFullAccess`
 - [ ] Store `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` as GitHub Actions secrets
 - [ ] Enable Bedrock model access in AWS console:
-  - `anthropic.claude-3-haiku-20240307-v1:0`
+  - `anthropic.claude-3-5-haiku-20241022-v1:0`
   - `amazon.titan-embed-text-v2:0`
 - [ ] Create S3 bucket for CDK bootstrap: `cdk bootstrap aws://ACCOUNT/REGION`
 
@@ -28,29 +28,29 @@
 ### 5.2 — ECR Repository + First Image Push
 
 - [ ] Create ECR repository via AWS CLI or CDK: `experience-rag-bot/api`
-- [ ] Add push script `infra/scripts/push-ecr.sh`:
+- [x] Add push script `infra/scripts/push-ecr.sh`:
   ```bash
   aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REGISTRY
   docker build -f apps/api/Dockerfile -t $ECR_REGISTRY/api:$IMAGE_TAG .
   docker push $ECR_REGISTRY/api:$IMAGE_TAG
   ```
-- [ ] Tag strategy: `latest` + `git-sha` (e.g., `abc1234`)
+- [x] Tag strategy: `latest` + `git-sha` (e.g., `abc1234`)
 - [ ] Verify first manual push succeeds: `bash infra/scripts/push-ecr.sh`
-- [ ] Add `.aws/credentials` warning to `.gitignore` and README
+- [x] Add `.aws/credentials` warning to `.gitignore` and README
 
 ---
 
 ### 5.3 — RDS PostgreSQL + pgvector
 
-- [ ] Create RDS instance via CDK (`infra/cdk/lib/database-stack.ts`):
+- [x] Create RDS instance via CDK (`infra/cdk/lib/database-stack.ts`):
   - Engine: `PostgresEngineVersion.VER_16`
   - Instance class: `InstanceType.of(InstanceClass.T4G, InstanceSize.MICRO)`
   - Storage: `20 GB gp3`
   - Multi-AZ: `false` (single AZ for cost savings)
   - Deletion protection: `true`
   - Backup retention: `7 days`
-- [ ] Configure security group: allow inbound `5432` only from ECS task security group
-- [ ] Store DB credentials in Secrets Manager (auto-rotated):
+- [x] Configure security group: allow inbound `5432` only from ECS task security group
+- [x] Store DB credentials in Secrets Manager (auto-rotated):
   - CDK: `rds.DatabaseInstance.secret` → automatically created
 - [ ] Create init lambda or one-off ECS task to run `init.sql` (pgvector extension + table)
 - [ ] Verify connectivity from a local machine via an SSH tunnel (bastion host optional)
@@ -59,7 +59,7 @@
 
 ### 5.4 — ECS Fargate + ALB
 
-- [ ] Create CDK stack `infra/cdk/lib/api-stack.ts`:
+- [x] Create CDK stack `infra/cdk/lib/api-stack.ts`:
   - **VPC**: reuse default or create with 2 AZs, 1 public + 1 private subnet each
   - **ECS Cluster**: Fargate, container insights enabled
   - **Task Definition**:
@@ -67,24 +67,23 @@
     - Image: ECR image (parameterized by image tag)
     - Environment variables: read from SSM Parameter Store
     - Secrets: DB credentials from Secrets Manager
-    - Port mappings: `3000` (REST), `3002` (WebSocket)
+    - Port mappings: `3001` (REST + WebSocket via Socket.io upgrade)
   - **Fargate Service**:
     - Desired count: `1`
     - Spot capacity provider (cost reduction ~70%)
     - Health check grace period: `60s`
   - **ALB**:
-    - HTTP listener → redirect to HTTPS
-    - HTTPS listener → forward to ECS target group
+    - HTTP listener → forward to ECS target group
     - Health check path: `/api/health`
     - Stickiness: disabled (stateless API)
-  - **ACM Certificate**: create or import for your domain
-- [ ] Assign task role with permissions: `bedrock:InvokeModel`, `ssm:GetParameter`, `secretsmanager:GetSecretValue`
+  - **ACM Certificate**: create or import for your domain (add HTTPS listener manually)
+- [x] Assign task role with permissions: `bedrock:InvokeModel`, `ssm:GetParameter`, `secretsmanager:GetSecretValue`
 
 ---
 
 ### 5.5 — SSM Parameter Store (Environment Variables)
 
-- [ ] Create CDK construct or script to populate SSM parameters:
+- [x] Create CDK construct or script to populate SSM parameters (see `infra/README.md`):
   - `/experience-rag-bot/prod/API_PORT`
   - `/experience-rag-bot/prod/AI_LLM_PROVIDER`
   - `/experience-rag-bot/prod/AI_EMBEDDING_PROVIDER`
@@ -96,42 +95,42 @@
   - `/experience-rag-bot/prod/RATE_LIMIT_TTL`
   - `/experience-rag-bot/prod/RATE_LIMIT_MAX`
 - [ ] Sensitive values (DB password, API keys) stored as `SecureString`
-- [ ] Update ECS task definition to read params from SSM at container startup
-- [ ] Document: `infra/README.md` — how to update a param without redeploying
+- [x] Update ECS task definition to read params from SSM at container startup
+- [x] Document: `infra/README.md` — how to update a param without redeploying
 
 ---
 
 ### 5.6 — S3 + CloudFront (Frontend)
 
-- [ ] Create CDK stack `infra/cdk/lib/frontend-stack.ts`:
+- [x] Create CDK stack `infra/cdk/lib/frontend-stack.ts`:
   - **S3 bucket**: private, versioning enabled, block all public access
   - **CloudFront distribution**:
     - Origin: S3 bucket (OAC — Origin Access Control)
-    - Cache policy: `CachingOptimized` for static assets, `CachingDisabled` for API paths
+    - Cache policy: `CachingOptimized` for static assets
     - Default root object: `index.html`
-    - Error page: `404.html` → `/index.html` (SPA fallback for Next.js ISR)
+    - Error page: `404/403` → `/index.html` (SPA fallback for Next.js static export)
     - HTTPS only, TLS 1.2+
-    - Custom domain via ACM
-- [ ] Add deploy script `infra/scripts/deploy-frontend.sh`:
+    - Custom domain via ACM (add manually)
+- [x] Add deploy script `infra/scripts/deploy-frontend.sh`:
   - `next build` → `aws s3 sync out/ s3://bucket-name --delete`
   - `aws cloudfront create-invalidation --paths "/*"`
-- [ ] Configure Next.js `output: 'export'` or use `next export` for static output
-- [ ] Add `NEXT_PUBLIC_API_URL` pointing to ALB domain in production
+- [x] Configure Next.js `output: 'export'` for static output
+- [x] Add `NEXT_PUBLIC_API_URL` pointing to ALB domain in production
 
 ---
 
 ### 5.7 — CDK App Entry + Stack Composition
 
-- [ ] Initialize CDK app: `infra/cdk/bin/app.ts`
-- [ ] Compose stacks with correct dependency order:
+- [x] Initialize CDK app: `infra/cdk/bin/app.ts`
+- [x] Compose stacks with correct dependency order:
   ```typescript
   const dbStack = new DatabaseStack(app, "Database", { env });
   const apiStack = new ApiStack(app, "Api", { env, dbStack });
   const frontendStack = new FrontendStack(app, "Frontend", { env });
   ```
-- [ ] Add stack tags: `Project: experience-rag-bot`, `Environment: prod`
-- [ ] Add `cdk diff` and `cdk deploy` scripts to `infra/package.json`
-- [ ] Write `infra/README.md`:
+- [x] Add stack tags: `Project: experience-rag-bot`, `Environment: prod`
+- [x] Add `cdk diff` and `cdk deploy` scripts to `infra/cdk/package.json`
+- [x] Write `infra/README.md`:
   - Prerequisites (AWS CLI, CDK, credentials)
   - First deploy walkthrough
   - How to rollback (redeploy previous image tag)
@@ -142,9 +141,9 @@
 
 ### 5.8 — CI/CD Pipeline (GitHub Actions)
 
-- [ ] Create `.github/workflows/deploy.yml`
-- [ ] Trigger: push to `main` branch only
-- [ ] Jobs (run in sequence):
+- [x] Create `.github/workflows/deploy.yml`
+- [x] Trigger: push to `main` branch only
+- [x] Jobs (run in sequence):
   1. **test** — `pnpm turbo test lint typecheck`
   2. **build-api** — Docker build + push to ECR with `git-sha` tag
   3. **deploy-api** — Update ECS service with new image tag (rolling update)
@@ -181,5 +180,5 @@ To migrate: swap the CDK stack + swap `BedrockClaudeAdapter` → `VertexAIAdapte
 - [ ] `https://yourdomain.com` — landing page loads from CloudFront
 - [ ] Chat works end-to-end in production (browser → ALB → ECS → Bedrock → pgvector)
 - [ ] GitHub Actions pipeline deploys on every push to `main`
-- [ ] No AWS credentials committed to git
+- [x] No AWS credentials committed to git
 - [ ] Monthly bill < $35
